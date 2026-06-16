@@ -274,6 +274,36 @@ def cmd_build_panel(args) -> None:
           f"(adj_close) — unadjusted prices will read splits as crashes.\n")
 
 
+def cmd_snapshot_membership(args) -> None:
+    if args.holdings_csv:
+        tickers = ingest.tickers_from_holdings_file(args.holdings_csv, args.ticker_col)
+    elif args.tickers_file:
+        with open(args.tickers_file) as fh:
+            tickers = {ln.split("#", 1)[0].strip() for ln in fh if ln.strip()}
+    elif args.from_panel:
+        tickers = set(Panel.from_csv(args.from_panel).symbols())
+    else:
+        print("\nProvide --holdings-csv, --tickers-file, or --from-panel.\n")
+        return
+    import datetime
+    date = args.date or datetime.date.today().isoformat()
+    total = ingest.append_membership_snapshot(args.out, date, tickers)
+    print(f"\nRecorded {len(tickers)} constituents for {date} in {args.out} "
+          f"({total} snapshot(s) total).")
+    print("Run this on a schedule to accumulate point-in-time history (the free "
+          "path to a bias-free backtest).\n")
+
+
+def cmd_build_panel_yahoo(args) -> None:
+    syms = ([s.strip().upper() for s in args.symbols.split(",") if s.strip()]
+            if args.symbols else
+            [ln.split("#", 1)[0].strip().upper()
+             for ln in open(args.symbols_file) if ln.strip()])
+    n = ingest.build_panel_csv(syms, args.start, args.out)
+    print(f"\nWrote {args.out}: {n} rows for {len(syms)} symbols (Yahoo, "
+          f"auto-adjusted).\n")
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="rhbot", description=__doc__)
     p.add_argument("--ledger", default=DEFAULT_LEDGER)
@@ -343,6 +373,24 @@ def build_parser() -> argparse.ArgumentParser:
     bp.add_argument("--price-col", default="adj_close")
     bp.add_argument("--out", default="data/panel.csv")
     bp.set_defaults(func=cmd_build_panel)
+
+    sm = sub.add_parser("snapshot-membership",
+                        help="record today's constituents -> point-in-time history")
+    sm.add_argument("--holdings-csv", help="a vendor holdings file (e.g. iShares IWB export)")
+    sm.add_argument("--tickers-file", help="one ticker per line")
+    sm.add_argument("--from-panel", help="use the symbols present in a panel CSV")
+    sm.add_argument("--ticker-col", default="Ticker")
+    sm.add_argument("--date", help="snapshot date (default: today)")
+    sm.add_argument("--out", default="data/membership.json")
+    sm.set_defaults(func=cmd_snapshot_membership)
+
+    py = sub.add_parser("build-panel-yahoo",
+                        help="self-serve adjusted-price panel via yfinance (no keys)")
+    py.add_argument("--symbols", help="comma-separated tickers")
+    py.add_argument("--symbols-file", help="one ticker per line")
+    py.add_argument("--start", default="2010-01-01")
+    py.add_argument("--out", default="data/panel.csv")
+    py.set_defaults(func=cmd_build_panel_yahoo)
     return p
 
 

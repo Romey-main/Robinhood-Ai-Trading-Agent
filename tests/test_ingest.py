@@ -72,6 +72,33 @@ class IngestTest(unittest.TestCase):
         self.assertEqual(panel.price_asof("AAPL", "2025-01-03"), 187.0)
         self.assertEqual(panel.price_asof("MSFT", "2025-01-02"), 400.0)
 
+    def test_tickers_from_holdings_file(self):
+        p = self._write("IWB_2025-03-31.csv",
+                        ISHARES.format(date="Mar 31, 2025", extra="GE,GE Aerospace,Ind,Equity,0.4"))
+        t = ingest.tickers_from_holdings_file(p)
+        self.assertEqual(t, {"AAPL", "MSFT", "GE"})
+
+    def test_append_membership_snapshot_accumulates(self):
+        out = os.path.join(self.dir, "membership.json")
+        self.assertEqual(ingest.append_membership_snapshot(out, "2025-01-31", {"AAPL", "MSFT"}), 1)
+        self.assertEqual(ingest.append_membership_snapshot(out, "2025-02-28", {"AAPL", "NVDA"}), 2)
+        m = Membership.from_json(out)
+        self.assertEqual(m.members_asof("2025-03-01"), {"AAPL", "NVDA"})
+        self.assertEqual(m.members_asof("2025-02-01"), {"AAPL", "MSFT"})
+
+    def test_build_panel_csv_with_injected_fetch(self):
+        series = {
+            "AAA": [("2025-01-02", 10.0), ("2025-01-03", 11.0)],
+            "BBB": [("2025-01-02", 20.0), ("2025-01-03", 19.0)],
+        }
+        out = os.path.join(self.dir, "panel.csv")
+        n = ingest.build_panel_csv(["AAA", "BBB"], "2025-01-01", out,
+                                   fetch=lambda s, start: series[s])
+        self.assertEqual(n, 4)
+        panel = Panel.from_csv(out)
+        self.assertEqual(panel.price_asof("AAA", "2025-01-03"), 11.0)
+        self.assertEqual(panel.price_asof("BBB", "2025-01-02"), 20.0)
+
 
 if __name__ == "__main__":
     unittest.main()

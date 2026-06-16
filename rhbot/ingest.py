@@ -88,3 +88,65 @@ def panel_from_long_csv(path: str, out: str, date_col: str = "date",
                 w.writerow([d, s, p])
                 n += 1
     return n
+
+
+def tickers_from_holdings_file(path: str, ticker_col: str = "Ticker") -> set:
+    """Constituents from a single vendor holdings file (e.g. an iShares export)."""
+    with open(path, newline="") as fh:
+        rows = list(csv.reader(fh))
+    hdr = next((i for i, r in enumerate(rows) if ticker_col in r), None)
+    if hdr is None:
+        return set()
+    col = rows[hdr].index(ticker_col)
+    return {r[col].strip().upper() for r in rows[hdr + 1:]
+            if len(r) > col and _looks_like_ticker(r[col])}
+
+
+def append_membership_snapshot(path: str, date: str, tickers) -> int:
+    """Record one dated constituent snapshot, building point-in-time history.
+
+    This is the *free* path to an eventually bias-free backtest: run it on a
+    schedule and you accumulate genuine point-in-time membership going forward,
+    no paid vendor required (it just takes time to build history).
+    """
+    snaps: dict = {}
+    if os.path.exists(path):
+        with open(path) as fh:
+            snaps = json.load(fh)
+    snaps[date] = sorted({str(t).upper() for t in tickers if _looks_like_ticker(str(t))})
+    with open(path, "w") as fh:
+        json.dump({d: snaps[d] for d in sorted(snaps)}, fh, indent=2)
+    return len(snaps)
+
+
+def _yahoo_fetch(symbol: str, start: str):
+    """Default price fetcher for build_panel_csv (optional dep: yfinance)."""
+    try:
+        import yfinance as yf
+    except ImportError as exc:  # pragma: no cover - env dependent
+        raise ImportError("build-panel-yahoo needs yfinance: pip install yfinance") from exc
+    h = yf.Ticker(symbol).history(start=start, auto_adjust=True)
+    return [(idx.date().isoformat(), float(row["Close"]))
+            for idx, row in h.iterrows() if row["Close"] == row["Close"]]
+
+
+def build_panel_csv(symbols, start: str, out: str, fetch=None) -> int:
+    """Build a panel CSV by fetching adjusted closes per symbol.
+
+    ``fetch(symbol, start) -> [(iso_date, adj_close)]`` is injectable so the
+    transform is testable offline; the default uses Yahoo Finance.
+    """
+    fetch = fetch or _yahoo_fetch
+    rows = []
+    for s in symbols:
+        try:
+            for d, px in fetch(s, start):
+                rows.append((d, s.upper(), px))
+        except Exception as exc:  # noqa: BLE001 - skip bad symbols, keep going
+            print(f"[warn] {s}: {exc}")
+    rows.sort()
+    with open(out, "w", newline="") as fh:
+        w = csv.writer(fh)
+        w.writerow(["date", "symbol", "adj_close"])
+        w.writerows(rows)
+    return len(rows)

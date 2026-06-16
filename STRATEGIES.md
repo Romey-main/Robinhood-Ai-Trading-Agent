@@ -115,6 +115,29 @@ builds history going forward. A bias-free historical backtest needs a paid
 constituents dataset. Until one is wired in, every backtest here — including the
 66-name demo — is survivorship-biased and is **not** validation.
 
+### Recommended free workflow (best you can do without paying)
+
+1. **Get real *current* membership.** iShares bot-gates the CSV endpoint
+   (an automated GET returns the product page, not the file), so download
+   `IWB_holdings.csv` from the iShares Russell 1000 page in a browser, then:
+   ```bash
+   python -m rhbot snapshot-membership --holdings-csv IWB_holdings.csv \
+       --date 2026-06-16 --out data/membership.json
+   ```
+   This is bias-free for a *live* rebalance (it's the real index today) and
+   seeds your point-in-time store.
+2. **Accumulate history.** Re-run that snapshot command on a schedule (monthly).
+   Over time `membership.json` becomes a genuine point-in-time record — the only
+   free route to an eventually unbiased backtest.
+3. **Get full prices, self-serve.** No broker/keys needed:
+   ```bash
+   python -m rhbot build-panel-yahoo --symbols-file data/r1000_tickers.txt \
+       --start 2010-01-01 --out data/panel.csv      # needs: pip install yfinance
+   ```
+4. **Run it.** `rebalance` for today's vetted basket; `backtest` once you have
+   real history. `data/membership.demo.json` is an example snapshot (the 66 demo
+   names — a placeholder, not the real index).
+
 ## ⚠️ Read this before trusting any backtest number
 
 **Do not believe these as validation.** They are a *smoke test of the engine*,
