@@ -304,6 +304,39 @@ def cmd_build_panel_yahoo(args) -> None:
           f"auto-adjusted).\n")
 
 
+def cmd_fetch_prices(args) -> None:
+    syms = ([s.strip().upper() for s in args.symbols.split(",") if s.strip()]
+            if args.symbols else
+            [ln.split("#", 1)[0].strip().upper()
+             for ln in open(args.symbols_file) if ln.strip()])
+    base = ingest.PRICE_SOURCES[args.source]
+    if args.source == "tiingo":
+        token = args.tiingo_token
+        fetch = lambda s, start: ingest.tiingo_fetch(s, start, token=token)  # noqa: E731
+    else:
+        fetch = base
+    n = ingest.build_panel_csv(syms, args.start, args.out, fetch=fetch)
+    note = "" if args.source != "stooq" else " (stooq: split- not dividend-adjusted)"
+    print(f"\nWrote {args.out}: {n} rows for {len(syms)} symbols via {args.source}{note}.\n")
+
+
+def cmd_membership_diff(args) -> None:
+    snaps = ingest.load_membership(args.members)
+    a, b = (args.date_from, args.date_to) if args.date_from and args.date_to \
+        else ingest.two_latest_dates(snaps)
+    if not a or not b:
+        print("\nNeed at least two snapshots (or pass --from/--to) to diff.\n")
+        return
+    d = ingest.diff_snapshots(snaps, a, b)
+    print(f"\n=== Membership change {d['from']} -> {d['to']} ===")
+    print(f"  unchanged: {d['unchanged']}")
+    print(f"  added ({len(d['added'])}): {', '.join(d['added']) or '-'}")
+    print(f"  removed ({len(d['removed'])}): {', '.join(d['removed']) or '-'}")
+    if len(d['added']) > 50 or len(d['removed']) > 50:
+        print("  [!] large churn — verify the new snapshot before trading it")
+    print()
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="rhbot", description=__doc__)
     p.add_argument("--ledger", default=DEFAULT_LEDGER)
@@ -391,6 +424,23 @@ def build_parser() -> argparse.ArgumentParser:
     py.add_argument("--start", default="2010-01-01")
     py.add_argument("--out", default="data/panel.csv")
     py.set_defaults(func=cmd_build_panel_yahoo)
+
+    fp = sub.add_parser("fetch-prices",
+                        help="adjusted-price panel from a vendor (yahoo/tiingo/stooq)")
+    fp.add_argument("--source", choices=sorted(ingest.PRICE_SOURCES), default="tiingo")
+    fp.add_argument("--symbols", help="comma-separated tickers")
+    fp.add_argument("--symbols-file", help="one ticker per line")
+    fp.add_argument("--start", default="2010-01-01")
+    fp.add_argument("--tiingo-token", default=None, help="overrides TIINGO_API_KEY")
+    fp.add_argument("--out", default="data/panel.csv")
+    fp.set_defaults(func=cmd_fetch_prices)
+
+    md = sub.add_parser("membership-diff",
+                        help="audit constituent changes between two snapshots")
+    md.add_argument("--members", default="data/membership.json")
+    md.add_argument("--from", dest="date_from", help="from-date (default: 2nd latest)")
+    md.add_argument("--to", dest="date_to", help="to-date (default: latest)")
+    md.set_defaults(func=cmd_membership_diff)
     return p
 
 

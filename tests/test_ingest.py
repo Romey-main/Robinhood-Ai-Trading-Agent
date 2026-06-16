@@ -99,6 +99,35 @@ class IngestTest(unittest.TestCase):
         self.assertEqual(panel.price_asof("AAA", "2025-01-03"), 11.0)
         self.assertEqual(panel.price_asof("BBB", "2025-01-02"), 20.0)
 
+    def test_tiingo_fetch_parses_adjclose(self):
+        payload = ('[{"date":"2025-01-02T00:00:00.000Z","adjClose":10.5},'
+                   '{"date":"2025-01-03T00:00:00.000Z","adjClose":11.25}]')
+        rows = ingest.tiingo_fetch("AAPL", "2025-01-01", token="x",
+                                   http_get=lambda url, headers=None: payload)
+        self.assertEqual(rows, [("2025-01-02", 10.5), ("2025-01-03", 11.25)])
+
+    def test_tiingo_requires_token(self):
+        # no token arg and no env var -> clear error, not a silent bad fetch
+        os.environ.pop("TIINGO_API_KEY", None)
+        with self.assertRaises(RuntimeError):
+            ingest.tiingo_fetch("AAPL", "2025-01-01")
+
+    def test_stooq_fetch_respects_start(self):
+        csv_text = ("Date,Open,High,Low,Close,Volume\n"
+                    "2024-12-31,1,1,1,9.0,100\n"
+                    "2025-01-02,1,1,1,20.0,100\n2025-01-03,1,1,1,21.0,100\n")
+        rows = ingest.stooq_fetch("MSFT", "2025-01-01",
+                                  http_get=lambda url, headers=None: csv_text)
+        self.assertEqual(rows, [("2025-01-02", 20.0), ("2025-01-03", 21.0)])
+
+    def test_diff_snapshots(self):
+        snaps = {"2025-01-31": ["AAPL", "MSFT"], "2025-02-28": ["AAPL", "NVDA"]}
+        self.assertEqual(ingest.two_latest_dates(snaps), ("2025-01-31", "2025-02-28"))
+        d = ingest.diff_snapshots(snaps, "2025-01-31", "2025-02-28")
+        self.assertEqual(d["added"], ["NVDA"])
+        self.assertEqual(d["removed"], ["MSFT"])
+        self.assertEqual(d["unchanged"], 1)
+
 
 if __name__ == "__main__":
     unittest.main()

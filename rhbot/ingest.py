@@ -150,3 +150,75 @@ def build_panel_csv(symbols, start: str, out: str, fetch=None) -> int:
         w.writerow(["date", "symbol", "adj_close"])
         w.writerows(rows)
     return len(rows)
+
+
+# --- vendor price clients (one PriceSource interface: fetch(symbol, start)) ---
+
+def _http_get(url: str, headers: dict | None = None) -> str:
+    import urllib.request
+    req = urllib.request.Request(url, headers=headers or {"User-Agent": "rhbot"})
+    with urllib.request.urlopen(req, timeout=30) as resp:  # noqa: S310
+        return resp.read().decode("utf-8", "replace")
+
+
+def tiingo_fetch(symbol: str, start: str, token: str | None = None, http_get=None):
+    """Tiingo daily adjusted closes (split+dividend adjusted). Free tier + key.
+
+    Set TIINGO_API_KEY or pass token. This is the recommended *paid-grade*
+    source: adjClose is properly adjusted, unlike most free feeds.
+    """
+    import json as _json
+    import os as _os
+    token = token or _os.environ.get("TIINGO_API_KEY")
+    if not token:
+        raise RuntimeError("Tiingo needs a token: set TIINGO_API_KEY (free at tiingo.com)")
+    http_get = http_get or _http_get
+    url = (f"https://api.tiingo.com/tiingo/daily/{symbol}/prices"
+           f"?startDate={start}&token={token}&columns=date,adjClose")
+    out = []
+    for row in _json.loads(http_get(url, {"Content-Type": "application/json"})):
+        px = row.get("adjClose")
+        if px is not None:
+            out.append((row["date"][:10], float(px)))
+    return out
+
+
+def stooq_fetch(symbol: str, start: str, http_get=None):
+    """Stooq daily CSV (free, no key). Note: split-adjusted, NOT dividend-adjusted."""
+    import io
+    http_get = http_get or _http_get
+    text = http_get(f"https://stooq.com/q/d/l/?s={symbol.lower()}.us&i=d")
+    out = []
+    for r in csv.DictReader(io.StringIO(text)):
+        d, px = r.get("Date", ""), r.get("Close")
+        if d >= start and px not in (None, "", "N/D"):
+            out.append((d, float(px)))
+    return out
+
+
+PRICE_SOURCES = {"yahoo": _yahoo_fetch, "tiingo": tiingo_fetch, "stooq": stooq_fetch}
+
+
+# --- membership reconciliation -----------------------------------------------
+
+def load_membership(path: str) -> dict:
+    with open(path) as fh:
+        return json.load(fh)
+
+
+def two_latest_dates(snaps: dict):
+    ds = sorted(snaps)
+    if len(ds) >= 2:
+        return ds[-2], ds[-1]
+    return (None, ds[-1] if ds else None)
+
+
+def diff_snapshots(snaps: dict, date_a: str, date_b: str) -> dict:
+    """Additions/removals between two dated snapshots — auditable index changes."""
+    a = set(snaps.get(date_a, []))
+    b = set(snaps.get(date_b, []))
+    return {
+        "from": date_a, "to": date_b,
+        "added": sorted(b - a), "removed": sorted(a - b),
+        "unchanged": len(a & b),
+    }
