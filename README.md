@@ -79,9 +79,12 @@ python -m rhbot rebalance --strategy momentum --panel data/sample_panel.csv --ac
 python -m rhbot backtest  --strategy mean_reversion --panel data/sample_panel.csv --freq weekly
 ```
 
-> The demo `sample_panel.csv` is 14 mega-caps over 2 years — enough to exercise
-> the pipeline, **not** to validate a strategy. Real use needs the full
-> point-in-time Russell 1000 panel + membership. See STRATEGIES.md.
+> Demo panels: `sample_panel.csv` (14 mega-caps) and `r1000_demo_panel.csv`
+> (66 US stocks). They exercise the pipeline but **don't validate a strategy** —
+> real use needs the full point-in-time Russell 1000 panel + membership. Notably,
+> widening the demo from 14 to 66 names halved the mean-reversion Sharpe and
+> exposed a −27% drawdown: a live reminder not to trust a thin backtest.
+> See **[STRATEGIES.md](STRATEGIES.md)**.
 
 ## Quickstart
 

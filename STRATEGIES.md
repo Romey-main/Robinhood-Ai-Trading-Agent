@@ -80,22 +80,33 @@ python -m rhbot backtest --strategy mean_reversion --panel data/sample_panel.csv
 | membership | JSON `{"YYYY-MM-DD": ["AAPL", ...]}` | **point-in-time IWB** holdings; without it you get survivorship bias |
 | denylist | `data/denylist.txt` | your real 37 tickers (I won't invent them) |
 
-`data/sample_panel.csv` is a 14-name, 2-year demo fixture — enough to exercise
-the pipeline, **not** enough to validate a strategy.
+`data/sample_panel.csv` is a 14-name, 2-year demo fixture (mega-caps).
+`data/r1000_demo_panel.csv` is a larger 66-name US-stock cross-section (the
+liquid common stocks from Robinhood's "100 most popular", with ETFs and foreign
+ADRs removed). Both exercise the pipeline; **neither validates a strategy.**
 
 ## ⚠️ Read this before trusting any backtest number
 
-The demo backtest prints Sharpes near ~1.0. **Do not believe them as
-validation.** They are a *smoke test of the engine*, not a verdict on the
-strategies, because the demo fixture is:
+**Do not believe these as validation.** They are a *smoke test of the engine*,
+not a verdict on the strategies, because both demo fixtures are survivor-only,
+static-membership, and only ~2 years long (momentum needs ~13 months of warmup,
+so only ~12 real rebalances — a Sharpe from 12 points is statistically
+meaningless).
 
-1. **14 hand-picked mega-caps, not the Russell 1000** — no breadth, no dispersion.
-2. **Survivor-only and static** — these names are survivors that did well; the
-   blow-ups that the strategy would have to survive aren't in the sample. This
-   *inflates* returns. It is the exact bias the point-in-time machinery exists
-   to prevent — and the demo lacks the membership data to prevent it.
-3. **Only ~2 years**; momentum needs ~13 months of warmup, so only ~12 real
-   rebalances. A Sharpe from 12 points is statistically meaningless.
+Demo numbers through the full risk pipeline (5 bps/turnover costs):
+
+| sleeve | 14-name mega-caps | 66-name cross-section |
+|---|---|---|
+| momentum (monthly) | Sharpe 1.08, DD −3.7% | Sharpe 1.02, DD −12.5% |
+| mean-reversion (weekly) | Sharpe 1.11, DD −15.6% | **Sharpe 0.59, vol 34%, DD −27.5%** |
+
+**The key finding is itself a warning about trusting backtests:** broadening the
+universe from 14 to 66 names cut the mean-reversion Sharpe nearly *in half*
+(1.11 → 0.59) and exposed a −27.5% drawdown at 34% annualized vol. The 14-name
+large-cap set was *flattering* it. The broader number (~0.6) lands right in the
+spec's own 0.5–0.7 target — but with brutal drawdowns that only showed up once
+the cross-section was wider. The mega-cap momentum number is likewise survivor-
+inflated (the "most popular" list is, by definition, today's winners).
 
 A credible backtest needs the full point-in-time R1000 panel + membership.
 Until then, the mean-reversion sleeve remains **un-validated** (its spec said
