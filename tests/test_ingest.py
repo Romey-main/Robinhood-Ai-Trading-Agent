@@ -128,6 +128,46 @@ class IngestTest(unittest.TestCase):
         self.assertEqual(d["removed"], ["MSFT"])
         self.assertEqual(d["unchanged"], 1)
 
+    def _write_xlsx(self, name, rows):
+        import zipfile
+        strings, idx = [], {}
+
+        def sid(s):
+            if s not in idx:
+                idx[s] = len(strings)
+                strings.append(s)
+            return idx[s]
+
+        sheet_rows = []
+        for ri, row in enumerate(rows, start=1):
+            cells = "".join(
+                f'<c r="{chr(ord("A") + ci)}{ri}" t="s"><v>{sid(v)}</v></c>'
+                for ci, v in enumerate(row))
+            sheet_rows.append(f'<row r="{ri}">{cells}</row>')
+        ns = 'xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"'
+        sst = f"<sst {ns}>" + "".join(f"<si><t>{s}</t></si>" for s in strings) + "</sst>"
+        sheet = f"<worksheet {ns}><sheetData>{''.join(sheet_rows)}</sheetData></worksheet>"
+        p = os.path.join(self.dir, name)
+        with zipfile.ZipFile(p, "w") as z:
+            z.writestr("xl/sharedStrings.xml", sst)
+            z.writestr("xl/worksheets/sheet1.xml", sheet)
+        return p
+
+    def test_tickers_from_xlsx_holdings(self):
+        # iShares now serves .xlsx; the same parser must handle it (preamble +
+        # header + cash row), columns aligned by cell reference.
+        p = self._write_xlsx("IWB_2026-06-16.xlsx", [
+            ["iShares Russell 1000 ETF"],
+            ["Ticker", "Name", "Asset Class"],
+            ["AAPL", "Apple Inc", "Equity"],
+            ["MSFT", "Microsoft Corp", "Equity"],
+            ["-", "USD CASH", "Cash"],
+        ])
+        self.assertEqual(ingest.tickers_from_holdings_file(p), {"AAPL", "MSFT"})
+        # and through the dir-based builder (xlsx glob + date-in-filename)
+        snaps = ingest.membership_from_holdings_dir(self.dir, glob_pat="*.xlsx")
+        self.assertEqual(snaps["2026-06-16"], {"AAPL", "MSFT"})
+
 
 if __name__ == "__main__":
     unittest.main()

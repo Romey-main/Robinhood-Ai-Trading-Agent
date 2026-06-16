@@ -117,11 +117,13 @@ constituents dataset. Until one is wired in, every backtest here — including t
 
 ### Recommended free workflow (best you can do without paying)
 
-1. **Get real *current* membership.** iShares bot-gates the CSV endpoint
-   (an automated GET returns the product page, not the file), so download
-   `IWB_holdings.csv` from the iShares Russell 1000 page in a browser, then:
+1. **Get real *current* membership.** iShares bot-gates the download endpoint
+   (an automated GET returns the product page, not the file), so download the
+   holdings file from the iShares Russell 1000 page in a browser — **`.xlsx` or
+   `.csv`, both are parsed natively** (preamble rows and the cash line are
+   skipped automatically) — then:
    ```bash
-   python -m rhbot snapshot-membership --holdings-csv IWB_holdings.csv \
+   python -m rhbot snapshot-membership --holdings-csv IWB_holdings.xlsx \
        --date 2026-06-16 --out data/membership.json
    ```
    This is bias-free for a *live* rebalance (it's the real index today) and
