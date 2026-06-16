@@ -168,6 +168,30 @@ class IngestTest(unittest.TestCase):
         snaps = ingest.membership_from_holdings_dir(self.dir, glob_pat="*.xlsx")
         self.assertEqual(snaps["2026-06-16"], {"AAPL", "MSFT"})
 
+    def test_spreadsheetml_holdings(self):
+        # iShares' real "fund.xls" is SpreadsheetML 2003 with (a) several tables
+        # where only one has the Ticker header, (b) raw '&' in hyperlink URLs
+        # (invalid XML), and (c) ss:Index-positioned cells. Exercise all three.
+        xml = (
+            '<?xml version="1.0"?>\n'
+            '<ss:Workbook xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n'
+            '<ss:Worksheet ss:Name="Distributions"><ss:Table>'
+            '<ss:Row><ss:Cell ss:HRef="http://x?a=1&b=2&c=3">'
+            '<ss:Data ss:Type="String">disclaimer</ss:Data></ss:Cell></ss:Row>'
+            '</ss:Table></ss:Worksheet>'
+            '<ss:Worksheet ss:Name="Holdings"><ss:Table>'
+            '<ss:Row><ss:Cell><ss:Data ss:Type="String">Ticker</ss:Data></ss:Cell>'
+            '<ss:Cell><ss:Data ss:Type="String">Name</ss:Data></ss:Cell></ss:Row>'
+            '<ss:Row><ss:Cell><ss:Data ss:Type="String">AAPL</ss:Data></ss:Cell></ss:Row>'
+            '<ss:Row><ss:Cell ss:Index="1"><ss:Data ss:Type="String">MSFT</ss:Data></ss:Cell>'
+            '<ss:Cell ss:Index="2"><ss:Data ss:Type="String">Microsoft</ss:Data></ss:Cell></ss:Row>'
+            '<ss:Row><ss:Cell><ss:Data ss:Type="String">--</ss:Data></ss:Cell></ss:Row>'
+            '</ss:Table></ss:Worksheet></ss:Workbook>')
+        p = os.path.join(self.dir, "fund.xls")
+        with open(p, "w") as fh:
+            fh.write(xml)
+        self.assertEqual(ingest.tickers_from_holdings_file(p), {"AAPL", "MSFT"})
+
 
 if __name__ == "__main__":
     unittest.main()

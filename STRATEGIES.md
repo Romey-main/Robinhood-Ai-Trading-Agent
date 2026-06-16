@@ -119,13 +119,18 @@ constituents dataset. Until one is wired in, every backtest here — including t
 
 1. **Get real *current* membership.** iShares bot-gates the download endpoint
    (an automated GET returns the product page, not the file), so download the
-   holdings file from the iShares Russell 1000 page in a browser — **`.xlsx` or
-   `.csv`, both are parsed natively** (preamble rows and the cash line are
-   skipped automatically) — then:
+   holdings file from the iShares Russell 1000 page in a browser. The default
+   **`.xls` (Excel 2003 XML) download works as-is**, as do `.xlsx` and `.csv` —
+   all parsed natively (multiple worksheets, preamble rows, cash/futures lines,
+   and iShares' raw-`&` malformed-XML quirk are all handled) — then:
    ```bash
-   python -m rhbot snapshot-membership --holdings-csv IWB_holdings.xlsx \
-       --date 2026-06-16 --out data/membership.json
+   python -m rhbot snapshot-membership \
+       --holdings-csv iSharesRussell1000ETF_fund.xls \
+       --date 2026-06-16 --out data/membership.json   # -> 1003 real constituents
    ```
+   A ready-made `data/membership.json` (the real R1000, as of 2026-06-15) and
+   `data/r1000_tickers.txt` are already committed, so you can skip straight to
+   the rebalance.
    This is bias-free for a *live* rebalance (it's the real index today) and
    seeds your point-in-time store.
 2. **Accumulate history.** Re-run that snapshot command on a schedule (monthly).

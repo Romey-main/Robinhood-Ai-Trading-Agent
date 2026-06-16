@@ -78,15 +78,56 @@ def _read_xlsx_rows(path: str) -> list:
     return rows
 
 
-def _rows_from_file(path: str) -> list:
-    """Rows from a holdings file, auto-detecting Excel (.xlsx) vs CSV by magic."""
+def _read_spreadsheetml_rows(path: str, header_col: str = "Ticker") -> list:
+    """Read SpreadsheetML 2003 (Excel XML, ``urn:...:office:spreadsheet``).
+
+    This is what iShares' "fund.xls" download actually is. Honors ``ss:Index``
+    (sparse columns). A fund workbook has several tables (NAV history,
+    distributions, ...), so it returns the one with a ``Ticker`` header — the
+    holdings — falling back to the largest table if none is found.
+    """
+    import xml.etree.ElementTree as ET
+
+    with open(path, encoding="utf-8", errors="replace") as fh:
+        text = fh.read()
+    # iShares emits raw '&' in hyperlink URLs (&style=, &view=), which is not
+    # well-formed XML; escape any '&' that doesn't start a valid entity.
+    text = re.sub(r"&(?!(?:amp|lt|gt|quot|apos|#\d+|#x[0-9A-Fa-f]+);)", "&amp;", text)
+    SS = "{urn:schemas-microsoft-com:office:spreadsheet}"
+    root = ET.fromstring(text)
+    fallback: list = []
+    for table in root.iter(f"{SS}Table"):
+        rows = []
+        for row in table.findall(f"{SS}Row"):
+            cells, col = {}, 0
+            for c in row.findall(f"{SS}Cell"):
+                idx = c.get(f"{SS}Index")
+                col = int(idx) - 1 if idx else col
+                d = c.find(f"{SS}Data")
+                cells[col] = "".join(d.itertext()) if d is not None else ""
+                col += 1
+            maxc = max(cells) if cells else -1
+            rows.append([cells.get(i, "") for i in range(maxc + 1)])
+        if any(header_col in r for r in rows):     # the holdings table
+            return rows
+        if len(rows) > len(fallback):
+            fallback = rows
+    return fallback
+
+
+def _rows_from_file(path: str, header_col: str = "Ticker") -> list:
+    """Rows from a holdings file, auto-detecting the real format by content."""
     with open(path, "rb") as fh:
-        magic = fh.read(2)
-    if magic == b"PK":                      # .xlsx is a zip
+        head = fh.read(4096)
+    if head[:2] == b"PK":                                    # .xlsx (zip)
         return _read_xlsx_rows(path)
-    if magic == b"\xd0\xcf":                # legacy .xls (OLE2) — unsupported
-        raise ValueError(
-            "this is an old-format .xls; open it and 'Save As' .xlsx or .csv first")
+    if head[:2] == b"\xd0\xcf":                              # legacy binary .xls (OLE2)
+        raise ValueError("legacy binary .xls; open it and 'Save As' .xlsx or .csv first")
+    if b"urn:schemas-microsoft-com:office:spreadsheet" in head:  # Excel 2003 XML
+        return _read_spreadsheetml_rows(path, header_col)
+    low = head.lstrip().lower()
+    if low.startswith((b"<!doctype", b"<html", b"<table")) or b"<table" in low:
+        raise ValueError("file is an HTML table, not CSV; open it and 'Save As' .csv")
     with open(path, newline="") as fh:
         return list(csv.reader(fh))
 
@@ -108,7 +149,7 @@ def membership_from_holdings_dir(
         m = re.search(date_re, os.path.basename(fp))
         if not m:
             continue
-        rows = _rows_from_file(fp)
+        rows = _rows_from_file(fp, ticker_col)
         hdr = next((i for i, r in enumerate(rows) if ticker_col in r), None)
         if hdr is None:
             continue
@@ -157,7 +198,7 @@ def panel_from_long_csv(path: str, out: str, date_col: str = "date",
 
 def tickers_from_holdings_file(path: str, ticker_col: str = "Ticker") -> set:
     """Constituents from a single vendor holdings file: .csv or .xlsx."""
-    rows = _rows_from_file(path)
+    rows = _rows_from_file(path, ticker_col)
     hdr = next((i for i, r in enumerate(rows) if ticker_col in r), None)
     if hdr is None:
         return set()
