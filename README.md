@@ -41,19 +41,47 @@ real trades. Treat the $50 as tuition, not seed capital.
 
 ```
 rhbot/
+  # --- v1: discretionary single-name screener (the $50 paper journal) ---
   config.py          tunable thresholds + risk params (the constraints live here)
   models.py          Snapshot / ScoredCandidate / PaperTrade dataclasses
   screener.py        liquidity + volatility + momentum + sentiment scoring
   risk.py            position sizing, stop/target, pre-trade guardrails
   paper_engine.py    the measurement core: ledger, win rate, expectancy, drawdown
-  cli.py             `python -m rhbot ...`
-  providers/
-    yahoo.py         standalone data via yfinance (optional)
-    json_provider.py ingest snapshots from JSON (e.g. broker-sourced)
-tests/               unit tests for screener, risk, and the paper engine
-data/                example universe snapshots
+
+  # --- v2: systematic, risk-first portfolio sleeves ---
+  data_quality.py    per-name validation — the anti-rug / "no bad data" layer
+  universe.py        point-in-time index membership + corruption denylist
+  panel.py           date x symbol grid of split/dividend-adjusted closes
+  strategies/        mean_reversion (5-day) and momentum (12-1) sleeves
+  portfolio_risk.py  fail-closed vetting: circuit breakers, caps, cash routing
+  backtest.py        walk-forward backtest through the SAME risk pipeline
+
+  cli.py             `python -m rhbot screen|open|mark|report|rebalance|backtest`
+  providers/         standalone Yahoo (optional) + JSON ingest
+tests/               39 unit tests (screener, risk, paper, data-quality,
+                     strategies, portfolio-risk, backtest)
+data/                example universe, sample price panel, denylist
 ledger/              your paper-trade journal (JSON)
 ```
+
+## Systematic sleeves (v2) — risk and data integrity first
+
+Two long-only factor sleeves built from the planning specs: **5-day mean
+reversion** and **12-1 momentum**. Every rebalance runs
+`strategy → data-quality → portfolio risk` and is **fail-closed** — stale,
+non-finite, gapped, denylisted, or suspicious-jump data gets a name dropped,
+and a broken-looking feed or an over-concentrated basket returns
+`DO_NOT_TRADE`. Full design, the anti-"invalid information" guarantees, data
+requirements, and **honest backtest caveats** are in **[STRATEGIES.md](STRATEGIES.md)**.
+
+```bash
+python -m rhbot rebalance --strategy momentum --panel data/sample_panel.csv --account-value 50
+python -m rhbot backtest  --strategy mean_reversion --panel data/sample_panel.csv --freq weekly
+```
+
+> The demo `sample_panel.csv` is 14 mega-caps over 2 years — enough to exercise
+> the pipeline, **not** to validate a strategy. Real use needs the full
+> point-in-time Russell 1000 panel + membership. See STRATEGIES.md.
 
 ## Quickstart
 
