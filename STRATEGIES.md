@@ -85,6 +85,36 @@ python -m rhbot backtest --strategy mean_reversion --panel data/sample_panel.csv
 liquid common stocks from Robinhood's "100 most popular", with ETFs and foreign
 ADRs removed). Both exercise the pipeline; **neither validates a strategy.**
 
+### Bring your own data (adapters)
+
+You don't have to match our column names — map your vendor's export with the
+`build-panel` / `build-membership` commands:
+
+```bash
+# Any long price CSV -> engine panel (remap your column names)
+python -m rhbot build-panel --long-csv vendor_prices.csv \
+    --date-col trade_date --symbol-col ric --price-col close_adj --out data/panel.csv
+
+# A folder of dated holdings files (e.g. IWB_2025-01-31.csv) -> point-in-time membership
+python -m rhbot build-membership --holdings-dir ./iwb_holdings --out data/membership.json
+# ...or a single long CSV of date,ticker
+python -m rhbot build-membership --long-csv constituents.csv --out data/membership.json
+```
+
+### Where the data realistically comes from
+
+| need | free | bias-free (paid) |
+|---|---|---|
+| adjusted prices | this repo's broker pull, yfinance, Stooq | Polygon, Tiingo, Nasdaq Data Link |
+| **point-in-time R1000 membership** | iShares IWB holdings = **current only**; or save monthly snapshots from today forward | Norgate (Russell historical constituents), CRSP, FTSE Russell |
+
+**The honest gap:** there is no free source of *historical* point-in-time
+Russell 1000 membership. Current IWB holdings give you today's list (fine for a
+live rebalance, useless for a backtest of the past), and saving snapshots only
+builds history going forward. A bias-free historical backtest needs a paid
+constituents dataset. Until one is wired in, every backtest here — including the
+66-name demo — is survivorship-biased and is **not** validation.
+
 ## ⚠️ Read this before trusting any backtest number
 
 **Do not believe these as validation.** They are a *smoke test of the engine*,

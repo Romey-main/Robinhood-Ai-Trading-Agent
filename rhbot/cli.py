@@ -27,6 +27,7 @@ from .strategies import REGISTRY
 from .portfolio_risk import vet
 from .backtest import (run_backtest, weekly_rebalance_dates,
                        monthly_rebalance_dates)
+from . import ingest
 
 DEFAULT_LEDGER = "ledger/paper_trades.json"
 DEFAULT_CONFIG = "config.json"
@@ -247,6 +248,32 @@ def cmd_backtest(args) -> None:
     print()
 
 
+def cmd_build_membership(args) -> None:
+    if args.holdings_dir:
+        snaps = ingest.membership_from_holdings_dir(
+            args.holdings_dir, ticker_col=args.ticker_col, glob_pat=args.glob)
+    elif args.long_csv:
+        snaps = ingest.membership_from_long_csv(
+            args.long_csv, date_col=args.date_col, ticker_col=args.ticker_col_long)
+    else:
+        print("\nProvide --holdings-dir or --long-csv.\n")
+        return
+    n = ingest.write_membership_json(snaps, args.out)
+    sizes = sorted(len(v) for v in snaps.values())
+    print(f"\nWrote {args.out}: {n} dated snapshots; constituents per snapshot "
+          f"min/median/max = {sizes[0] if sizes else 0}/"
+          f"{sizes[len(sizes)//2] if sizes else 0}/{sizes[-1] if sizes else 0}")
+    print("Validate this against a known date before trusting it.\n")
+
+
+def cmd_build_panel(args) -> None:
+    n = ingest.panel_from_long_csv(
+        args.long_csv, args.out, date_col=args.date_col,
+        symbol_col=args.symbol_col, price_col=args.price_col)
+    print(f"\nWrote {args.out}: {n} rows. Prices MUST be split+dividend adjusted "
+          f"(adj_close) — unadjusted prices will read splits as crashes.\n")
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="rhbot", description=__doc__)
     p.add_argument("--ledger", default=DEFAULT_LEDGER)
@@ -296,6 +323,26 @@ def build_parser() -> argparse.ArgumentParser:
     bt.add_argument("--drift-skip", action="store_true",
                     help="skip rebalance when L1 drift < threshold (momentum)")
     bt.set_defaults(func=cmd_backtest)
+
+    bm = sub.add_parser("build-membership",
+                        help="vendor holdings -> point-in-time membership.json")
+    bm.add_argument("--holdings-dir", help="dir of dated holdings CSVs (date in filename)")
+    bm.add_argument("--long-csv", help="single CSV with date+ticker columns")
+    bm.add_argument("--ticker-col", default="Ticker", help="ticker column in holdings files")
+    bm.add_argument("--glob", default="*.csv")
+    bm.add_argument("--date-col", default="date", help="date column (--long-csv)")
+    bm.add_argument("--ticker-col-long", default="ticker", help="ticker column (--long-csv)")
+    bm.add_argument("--out", default="data/membership.json")
+    bm.set_defaults(func=cmd_build_membership)
+
+    bp = sub.add_parser("build-panel",
+                        help="vendor price CSV -> engine panel CSV")
+    bp.add_argument("--long-csv", required=True)
+    bp.add_argument("--date-col", default="date")
+    bp.add_argument("--symbol-col", default="symbol")
+    bp.add_argument("--price-col", default="adj_close")
+    bp.add_argument("--out", default="data/panel.csv")
+    bp.set_defaults(func=cmd_build_panel)
     return p
 
 
