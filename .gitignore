@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.DS_Store
+.pytest_cache/
+.idea/
+.vscode/
+# keep ledger/*.json tracked — the paper journal is the whole point

@@ -1,0 +1,5 @@
+# Core engine (screener, risk, paper_engine, CLI) uses ONLY the standard
+# library — no install needed to screen, paper-trade, or run the tests.
+#
+# Optional: only required for the standalone Yahoo Finance data provider.
+yfinance>=0.2.40

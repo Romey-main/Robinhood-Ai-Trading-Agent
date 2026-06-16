@@ -1,0 +1,22 @@
+[
+  {
+    "symbol": "BRUN",
+    "qty": 1.26498,
+    "entry_price": 37.55,
+    "stop_price": 34.55,
+    "target_price": 42.06,
+    "entry_time": "2026-06-16T02:05:18+00:00",
+    "side": "long",
+    "rationale": "Top screen 6/16: Boost Run AI-cloud, $472M Thinking Machines contract, Strong Buy PT$45, +6% 5d momentum, $72M/day liq, 0.6% spread. RISK: already ran $18->$42, so this is partly chasing.",
+    "sentiment": 0.5,
+    "score": 52.5,
+    "status": "open",
+    "exit_price": null,
+    "exit_time": null,
+    "exit_reason": null,
+    "id": "6d135b793847",
+    "pnl": null,
+    "pnl_pct": null,
+    "notional": 47.5
+  }
+]

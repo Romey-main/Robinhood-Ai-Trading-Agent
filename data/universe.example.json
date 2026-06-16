@@ -1,0 +1,222 @@
+[
+  {
+    "symbol": "FOXA",
+    "price": 54.76,
+    "avg_dollar_volume": 257017973.0,
+    "volatility": 0.04213,
+    "momentum": -0.18802,
+    "sentiment": -0.5,
+    "as_of": "2026-06-16",
+    "news_count": 2,
+    "notes": "Buying Roku for $22B, debt-funded; stock -17% on the deal (structural, not a dip)"
+  },
+  {
+    "symbol": "NTLA",
+    "price": 14.92,
+    "avg_dollar_volume": 79660936.0,
+    "volatility": 0.04978,
+    "momentum": -0.10561,
+    "sentiment": -0.15,
+    "as_of": "2026-06-16",
+    "news_count": 3,
+    "notes": "Pullback after Phase-3 spike; Wedbush Neutral, PT $12 < price"
+  },
+  {
+    "symbol": "BRUN",
+    "price": 37.55,
+    "avg_dollar_volume": 71653758.0,
+    "volatility": 0.08655,
+    "momentum": 0.06108,
+    "sentiment": 0.5,
+    "as_of": "2026-06-16",
+    "news_count": 3,
+    "notes": "Boost Run AI cloud; $472M Thinking Machines contract; Strong Buy, PT->$45; already ran $18->$42 (chasing risk)"
+  },
+  {
+    "symbol": "BAND",
+    "price": 52.815,
+    "avg_dollar_volume": 70769228.0,
+    "volatility": 0.06344,
+    "momentum": -0.09501,
+    "sentiment": -0.3,
+    "as_of": "2026-06-16",
+    "news_count": 2,
+    "notes": "$275M convertible notes offering + insider selling overhang"
+  },
+  {
+    "symbol": "WYFI",
+    "price": 29.98,
+    "avg_dollar_volume": 36869932.0,
+    "volatility": 0.07476,
+    "momentum": 0.06145,
+    "sentiment": 0.25,
+    "as_of": "2026-06-16",
+    "news_count": 3,
+    "notes": "WhiteFiber AI-HPC; ~$160M deals; Barclays Equal-Weight PT $27 ~= price"
+  },
+  {
+    "symbol": "RVI",
+    "price": 42.33,
+    "avg_dollar_volume": 35756103.0,
+    "volatility": 0.07653,
+    "momentum": -0.05749,
+    "sentiment": 0.0,
+    "as_of": "2026-06-16",
+    "news_count": 0,
+    "notes": "no news researched -> neutral"
+  },
+  {
+    "symbol": "WTI",
+    "price": 3.39,
+    "avg_dollar_volume": 24439004.0,
+    "volatility": 0.05481,
+    "momentum": 0.0973,
+    "sentiment": 0.2,
+    "as_of": "2026-06-16",
+    "news_count": 2,
+    "notes": "Oil momentum, shareholder mtg approved; but $3 stock = high friction"
+  },
+  {
+    "symbol": "ORBS",
+    "price": 1.045,
+    "avg_dollar_volume": 23145137.0,
+    "volatility": 0.08042,
+    "momentum": 0.00919,
+    "sentiment": 0.0,
+    "as_of": "2026-06-16",
+    "news_count": 0,
+    "notes": "spread 1.0%"
+  },
+  {
+    "symbol": "BTQ",
+    "price": 5.34,
+    "avg_dollar_volume": 15403013.0,
+    "volatility": 0.09396,
+    "momentum": 0.02211,
+    "sentiment": 0.0,
+    "as_of": "2026-06-16",
+    "news_count": 0,
+    "notes": "spread 0.6%"
+  },
+  {
+    "symbol": "ELVR",
+    "price": 102.49,
+    "avg_dollar_volume": 8418685.0,
+    "volatility": 0.05284,
+    "momentum": 0.12171,
+    "sentiment": 0.0,
+    "as_of": "2026-06-16",
+    "news_count": 0,
+    "notes": "spread 6.7%"
+  },
+  {
+    "symbol": "HQ",
+    "price": 17.84,
+    "avg_dollar_volume": 3309889.0,
+    "volatility": 0.07985,
+    "momentum": 0.03806,
+    "sentiment": 0.0,
+    "as_of": "2026-06-16",
+    "news_count": 0,
+    "notes": "spread 6.3%"
+  },
+  {
+    "symbol": "SMWB",
+    "price": 5.245,
+    "avg_dollar_volume": 3228762.0,
+    "volatility": 0.04232,
+    "momentum": 0.07882,
+    "sentiment": 0.0,
+    "as_of": "2026-06-16",
+    "news_count": 0,
+    "notes": "spread 3.7%"
+  },
+  {
+    "symbol": "JCYGY",
+    "price": 44.4,
+    "avg_dollar_volume": 10584.0,
+    "volatility": 0.04097,
+    "momentum": -0.15645,
+    "sentiment": 0.0,
+    "as_of": "2026-06-16",
+    "news_count": 0,
+    "notes": "spread 11.4%"
+  },
+  {
+    "symbol": "FRTAY",
+    "price": 13.75,
+    "avg_dollar_volume": 4480.0,
+    "volatility": 0.03741,
+    "momentum": -0.0484,
+    "sentiment": 0.0,
+    "as_of": "2026-06-16",
+    "news_count": 0,
+    "notes": "spread 33.2%"
+  },
+  {
+    "symbol": "NDVLY",
+    "price": 0.44,
+    "avg_dollar_volume": 2763.0,
+    "volatility": 0.08125,
+    "momentum": 0.0201,
+    "sentiment": 0.0,
+    "as_of": "2026-06-16",
+    "news_count": 0,
+    "notes": "spread 37.8%"
+  },
+  {
+    "symbol": "XTEPY",
+    "price": 54.21,
+    "avg_dollar_volume": 2423.0,
+    "volatility": 0.04466,
+    "momentum": 0.05819,
+    "sentiment": 0.0,
+    "as_of": "2026-06-16",
+    "news_count": 0,
+    "notes": "spread 12.8%"
+  },
+  {
+    "symbol": "MCHVY",
+    "price": 14.9,
+    "avg_dollar_volume": 540.0,
+    "volatility": 0.0,
+    "momentum": 0.0,
+    "sentiment": 0.0,
+    "as_of": "2026-06-16",
+    "news_count": 0,
+    "notes": "spread 28.4%"
+  },
+  {
+    "symbol": "SPCX",
+    "price": 192.425,
+    "avg_dollar_volume": 0.0,
+    "volatility": 0.0,
+    "momentum": 0.0,
+    "sentiment": 0.0,
+    "as_of": "2026-06-16",
+    "news_count": 0,
+    "notes": "thin"
+  },
+  {
+    "symbol": "HKSHY",
+    "price": 13.65,
+    "avg_dollar_volume": 0.0,
+    "volatility": 0.0,
+    "momentum": 0.0,
+    "sentiment": 0.0,
+    "as_of": "2026-06-16",
+    "news_count": 0,
+    "notes": "thin"
+  },
+  {
+    "symbol": "CARCY",
+    "price": 4.6792,
+    "avg_dollar_volume": 0.0,
+    "volatility": 0.0,
+    "momentum": 0.0,
+    "sentiment": 0.0,
+    "as_of": "2026-06-16",
+    "news_count": 0,
+    "notes": "thin"
+  }
+]
