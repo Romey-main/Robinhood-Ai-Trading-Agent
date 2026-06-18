@@ -57,6 +57,20 @@ The blend is re-capped (sector/name) as one portfolio. Blending the high-vol
 momentum book with the defensive low-vol book cuts top-sector concentration from
 **30% → 15%** — diversification across *factors*, not just names.
 
+The composite is a first-class strategy, so you can **backtest the blend** head
+to head with `backtest --sleeves momentum:0.5,low_vol:0.5`. On the (still
+survivorship-biased) demo panel the diversification shows up exactly as theory
+predicts — the blend keeps most of momentum's risk-adjusted return at far lower
+risk:
+
+| | momentum | low_vol | combo |
+|---|---|---|---|
+| Sharpe | 1.26 | 0.43 | 1.22 |
+| ann vol | 17.0% | 10.2% | 10.5% |
+| max drawdown | −9.4% | −6.7% | **−5.0%** |
+
+(Illustrative mechanics, **not** validation — see the survivorship warning below.)
+
 **Turnover & cost.** Costs are charged on turnover everywhere (often the whole
 story at small size). The backtest reports `avg_turnover` and total `cost_drag`;
 `rebalance --current book.json` reports turnover vs your live book (buys/exits +

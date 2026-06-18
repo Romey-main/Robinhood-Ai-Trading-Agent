@@ -1,4 +1,5 @@
 from .base import Strategy, TargetBasket
+from .composite import CompositeStrategy
 from .low_vol import LowVolatility
 from .mean_reversion import ShortTermReversal
 from .momentum import Momentum12_1
@@ -10,4 +11,4 @@ REGISTRY = {
 }
 
 __all__ = ["Strategy", "TargetBasket", "ShortTermReversal", "Momentum12_1",
-           "LowVolatility", "REGISTRY"]
+           "LowVolatility", "CompositeStrategy", "REGISTRY"]

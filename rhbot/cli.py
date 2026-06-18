@@ -23,7 +23,7 @@ from .providers import JsonProvider
 from .strategy_config import StrategyConfig
 from .panel import Panel
 from .universe import Membership, Denylist
-from .strategies import REGISTRY
+from .strategies import REGISTRY, CompositeStrategy
 from .portfolio_risk import vet
 from .backtest import (run_backtest, weekly_rebalance_dates,
                        monthly_rebalance_dates)
@@ -275,57 +275,41 @@ def _parse_sleeves(spec: str):
     return out
 
 
+def _build_sleeves(spec):
+    return [(REGISTRY[n](), w) for n, w in _parse_sleeves(spec)]
+
+
 def cmd_combine(args) -> None:
-    from .portfolio_construction import apply_caps, blend
-    from .strategies.base import TargetBasket
     scfg, panel, membership, denylist, sectors = _load_data_inputs(args)
     asof = args.asof or panel.latest_date()
     members = (membership.members_asof(asof)
                if membership.has_snapshots else set(panel.symbols()))
-    sleeves = _parse_sleeves(args.sleeves)
+    sleeves = _build_sleeves(args.sleeves)
     tot_w = sum(w for _, w in sleeves)
-
     print(f"\n=== combined rebalance @ {asof} ===")
     print(f"feed latest date {panel.latest_date()}; universe={len(members)}; "
-          f"sleeves: {', '.join(f'{n} {w/tot_w*100:.0f}%' for n, w in sleeves)}")
-
-    subs = [(REGISTRY[n]().generate(panel, members, asof, scfg,
-                                    denylist=denylist, sectors=sectors), w)
-            for n, w in sleeves]
-    blended = blend([b.weights for b, _ in subs], [w for _, w in subs])
-    capped = apply_caps(blended, min(1.0, sum(blended.values())), scfg, sectors)
-
-    cb = TargetBasket(asof=asof, strategy="combo")
-    cb.weights = capped
-    cb.selected = sorted(capped, key=lambda s: -capped[s])
-    cb.n_considered = max((b.n_considered for b, _ in subs), default=0)
-    cb.n_dq_pass = max((b.n_dq_pass for b, _ in subs), default=0)
-    cb.n_valid = len(capped)
-    for (b, _), (n, w) in zip(subs, sleeves):
-        cb.notes.append(f"sleeve {n}: {w/tot_w*100:.0f}% ({len(b.selected)} names)")
-    if sectors and capped:
-        from .portfolio_construction import _sector_totals
-        sec = max(_sector_totals(capped, sectors).items(), key=lambda x: x[1])
-        cb.notes.append(f"top sector: {sec[0]} {sec[1]*100:.0f}%")
-
-    decision = vet(cb, scfg, account_value=args.account_value)
-    _report_decision(cb, decision, args.account_value,
+          f"sleeves: {', '.join(f'{s.name} {w/tot_w*100:.0f}%' for s, w in sleeves)}")
+    basket = CompositeStrategy(sleeves).generate(
+        panel, members, asof, scfg, denylist=denylist, sectors=sectors)
+    decision = vet(basket, scfg, account_value=args.account_value)
+    _report_decision(basket, decision, args.account_value,
                      current=_load_current(getattr(args, "current", None)), cfg=scfg)
 
 
-def cmd_backtest(args) -> None:
-    scfg, panel, membership, denylist, strat, sectors = _load_strategy_inputs(args)
-    if args.freq == "weekly":
-        dates, ppy = weekly_rebalance_dates(panel), 52.0
-    else:
-        dates, ppy = monthly_rebalance_dates(panel), 12.0
-    if len(dates) < 3:
-        print("\nNot enough rebalance dates in the panel to backtest.\n")
-        return
-    res = run_backtest(strat, panel, membership, scfg, dates, ppy,
-                       denylist=denylist, drift_skip=args.drift_skip, sectors=sectors)
+def _strategy_from_args(args):
+    """Single sleeve (--strategy) or a blended composite (--sleeves)."""
+    if getattr(args, "sleeves", None):
+        return CompositeStrategy(_build_sleeves(args.sleeves))
+    if not getattr(args, "strategy", None):
+        raise SystemExit("provide --strategy or --sleeves")
+    cls = REGISTRY[args.strategy]
+    top_n = getattr(args, "top_n", None)
+    return cls(top_n=top_n) if top_n else cls()
+
+
+def _print_backtest(res, scfg, freq) -> None:
     s = res.stats
-    print(f"\n=== Backtest: {strat.name} ({args.freq}, {s.get('n_periods')} periods) ===")
+    print(f"\n=== Backtest: {res.strategy} ({freq}, {s.get('n_periods')} periods) ===")
     print(f"  Sharpe:        {s.get('sharpe')}")
     print(f"  ann. return:   {s.get('ann_return', 0)*100:+.1f}%")
     print(f"  ann. vol:      {s.get('ann_vol', 0)*100:.1f}%")
@@ -341,6 +325,21 @@ def cmd_backtest(args) -> None:
         print(f"  note: {s['missing_forward_prices']} missing forward prices "
               f"(treated as exited at entry)")
     print()
+
+
+def cmd_backtest(args) -> None:
+    scfg, panel, membership, denylist, sectors = _load_data_inputs(args)
+    strat = _strategy_from_args(args)
+    if args.freq == "weekly":
+        dates, ppy = weekly_rebalance_dates(panel), 52.0
+    else:
+        dates, ppy = monthly_rebalance_dates(panel), 12.0
+    if len(dates) < 3:
+        print("\nNot enough rebalance dates in the panel to backtest.\n")
+        return
+    res = run_backtest(strat, panel, membership, scfg, dates, ppy,
+                       denylist=denylist, drift_skip=args.drift_skip, sectors=sectors)
+    _print_backtest(res, scfg, args.freq)
 
 
 def cmd_build_membership(args) -> None:
@@ -483,7 +482,10 @@ def build_parser() -> argparse.ArgumentParser:
     rb.set_defaults(func=cmd_rebalance)
 
     bt = sub.add_parser("backtest", help="walk-forward backtest through the risk pipeline")
-    _add_strategy_args(bt)
+    _add_data_args(bt)
+    bt.add_argument("--strategy", choices=sorted(REGISTRY), help="single sleeve")
+    bt.add_argument("--sleeves", help="OR a blend, e.g. momentum:0.5,low_vol:0.5")
+    bt.add_argument("--top-n", type=int, default=None, help="override basket size")
     bt.add_argument("--freq", choices=["weekly", "monthly"], default="weekly")
     bt.add_argument("--drift-skip", action="store_true",
                     help="skip rebalance when L1 drift < threshold (momentum)")

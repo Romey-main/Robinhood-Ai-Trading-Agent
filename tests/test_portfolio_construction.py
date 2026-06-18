@@ -7,7 +7,25 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from rhbot.panel import Panel
 from rhbot.portfolio_construction import (
     apply_no_trade_band, blend, construct, turnover)
+from rhbot.strategies import CompositeStrategy
+from rhbot.strategies.base import Strategy, TargetBasket
 from rhbot.strategy_config import StrategyConfig
+
+
+class _FakeSleeve(Strategy):
+    def __init__(self, name, weights):
+        self.name = name
+        self._w = weights
+
+    def required_history(self):
+        return 5
+
+    def generate(self, panel, members, asof, cfg, denylist=None, sectors=None):
+        b = TargetBasket(asof=asof, strategy=self.name)
+        b.weights = dict(self._w)
+        b.selected = list(self._w)
+        b.n_considered, b.n_dq_pass, b.n_valid = 100, 95, len(self._w)
+        return b
 
 
 def mkpanel(series):
@@ -76,6 +94,16 @@ class ConstructTest(unittest.TestCase):
         b2 = blend([{"A": 1.0}, {"B": 1.0}], [3, 1])     # unequal -> renormalized
         self.assertAlmostEqual(b2["A"], 0.75)
         self.assertAlmostEqual(b2["B"], 0.25)
+
+    def test_composite_blends_sleeves(self):
+        cfg = StrategyConfig(max_name_weight=0.5, max_sector_weight=1.0)
+        comp = CompositeStrategy([(_FakeSleeve("a", {"AAA": 1.0}), 0.5),
+                                  (_FakeSleeve("b", {"BBB": 1.0}), 0.5)])
+        b = comp.generate(None, set(), "2026-01-01", cfg, sectors=None)
+        self.assertAlmostEqual(b.weights["AAA"], 0.5)
+        self.assertAlmostEqual(b.weights["BBB"], 0.5)
+        self.assertEqual(b.n_dq_pass, 95)                # feed-health: max over sleeves
+        self.assertEqual(comp.required_history(), 5)
 
 
 if __name__ == "__main__":
