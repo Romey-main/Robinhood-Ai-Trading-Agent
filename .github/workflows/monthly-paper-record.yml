@@ -1,0 +1,62 @@
+name: Monthly paper-record
+
+# Appends one combined-sleeve basket to the walk-forward paper ledger each month,
+# building a SURVIVORSHIP-FREE track record automatically — every entry uses the
+# real index membership at the moment it's recorded. Then marks the ledger
+# forward and logs realized performance. Prices are fetched fresh (free, Yahoo)
+# and never committed; only data/paper_ledger.json is.
+
+on:
+  schedule:
+    - cron: "0 7 1 * *"        # 07:00 UTC on the 1st (after the 06:00 snapshot job)
+  workflow_dispatch: {}          # or run on demand
+
+permissions:
+  contents: write
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install price fetcher
+        run: pip install --quiet yfinance
+
+      - name: Fetch ~18 months of adjusted prices (Yahoo, free)
+        run: |
+          if [ ! -f data/r1000_tickers.txt ]; then
+            echo "::warning::no data/r1000_tickers.txt — nothing to price; skipping"
+            exit 0
+          fi
+          START=$(python -c "import datetime; print((datetime.date.today() - datetime.timedelta(days=550)).isoformat())")
+          python -m rhbot fetch-prices --source yahoo \
+            --symbols-file data/r1000_tickers.txt --start "$START" \
+            --out data/panel_full.csv
+
+      - name: "Record this month's basket (combo: momentum 50% + low-vol 50%)"
+        if: hashFiles('data/panel_full.csv') != ''
+        run: |
+          python -m rhbot paper-record --sleeves momentum:0.5,low_vol:0.5 \
+            --members data/membership.json --panel data/panel_full.csv \
+            --ledger data/paper_ledger.json
+
+      - name: Mark the ledger forward (log realized performance)
+        if: hashFiles('data/panel_full.csv') != ''
+        run: python -m rhbot paper-report --panel data/panel_full.csv --ledger data/paper_ledger.json || true
+
+      - name: Commit the ledger (the 20 MB price panel stays gitignored)
+        run: |
+          if ! git diff --quiet -- data/paper_ledger.json 2>/dev/null; then
+            git config user.name "rhbot-paper"
+            git config user.email "actions@users.noreply.github.com"
+            git add data/paper_ledger.json
+            git commit -m "chore: paper-record basket $(date -u +%F)"
+            git push
+          else
+            echo "No new ledger entry to commit."
+          fi

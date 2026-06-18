@@ -251,6 +251,12 @@ already holds the first real entry; append one each rebalance and the report
 becomes a genuine, trustworthy verdict on the sleeves. This is the only free path
 that turns the illustrative backtest Sharpes above into numbers you can believe.
 
+**It runs itself.** `.github/workflows/monthly-paper-record.yml` fetches fresh
+prices (Yahoo) and appends a combo basket on the 1st of each month, commits the
+ledger, and logs the marked-forward performance — so the track record accrues
+with no manual runs. (Needs Actions write permission: Settings → Actions →
+Workflow permissions → Read and write.)
+
 ## Scale reality at $50
 
 These are diversified *portfolio* sleeves (10 and 50 names). On $50 that's
