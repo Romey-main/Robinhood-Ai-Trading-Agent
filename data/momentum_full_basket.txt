@@ -1,0 +1,76 @@
+# Full Russell 1000 momentum (12-1) rebalance — REAL data
+# membership: data/membership.json (iShares IWB, 1003 names, as of 2026-06-15)
+# prices: Yahoo Finance auto-adjusted (split+dividend), 2024-01-02..2026-06-17,
+#         995/1003 names (8 dual-class ticker-convention misses); free, no API key
+# generated: 2026-06-18  |  PAPER/ADVISORY ONLY — no orders placed
+#
+
+=== momentum rebalance @ 2026-06-17 ===
+feed latest date 2026-06-17 (0d from asof); denylist=0 names; universe=1003
+data-quality pass 956/995 (96%); after filters 956; selected 50
+  note: formation window 2025-05-17 -> 2026-05-17
+
+>>> DECISION: TRADE <<<
+
+Target basket (100% invested, 0% cash):
+  SNDK    2.00%
+  LITE    2.00%
+  WDC     2.00%
+  MU      2.00%
+  CIEN    2.00%
+  INTC    2.00%
+  RKLB    2.00%
+  COHR    2.00%
+  FIX     2.00%
+  TER     2.00%
+  GLW     2.00%
+  RVMD    2.00%
+  AMD     2.00%
+  AMKR    2.00%
+  VRT     2.00%
+  LRCX    2.00%
+  MKSI    2.00%
+  FLEX    2.00%
+  ASTS    2.00%
+  ALB     2.00%
+  MTSI    2.00%
+  WBD     2.00%
+  MP      2.00%
+  MRVL    2.00%
+  ONTO    2.00%
+  ROIV    2.00%
+  AMAT    2.00%
+  ECG     2.00%
+  MTZ     2.00%
+  ALAB    2.00%
+  CAT     2.00%
+  NVT     2.00%
+  ON      2.00%
+  GEV     2.00%
+  TIGO    2.00%
+  GOOGL   2.00%
+  AU      2.00%
+  GOOG    2.00%
+  APA     2.00%
+  KLAC    2.00%
+  FTI     2.00%
+  LSCC    2.00%
+  WFRD    2.00%
+  PWR     2.00%
+  IONS    2.00%
+  NEM     2.00%
+  MPWR    2.00%
+  DELL    2.00%
+  AA      2.00%
+  CMI     2.00%
+
+Rejected (showing 6/39):
+  - ADT    below_price_floor: $6.48 < $10.00
+  - AUR    below_price_floor: $6.05 < $10.00
+  - AVTR   below_price_floor: $9.46 < $10.00
+  - BLSH   insufficient_history: 213 sessions < required 278
+  - BRBR   below_price_floor: $9.07 < $10.00
+  - CAI    insufficient_history: 251 sessions < required 278
+
+PAPER/ADVISORY only — this command places no orders.
+
