@@ -65,6 +65,8 @@ def run_backtest(
     prev_weights: dict = {}
     cost = cfg.cost_bps / 1e4
     missing_fwd = 0
+    turnovers: list = []
+    cost_drag = 0.0
 
     for i in range(len(rebalance_dates) - 1):
         d, nxt = rebalance_dates[i], rebalance_dates[i + 1]
@@ -79,7 +81,10 @@ def run_backtest(
         else:
             weights = decision.final_weights
 
-        # optional turnover suppression (momentum spec: skip if drift small)
+        # turnover control: name-level no-trade band, then whole-book drift skip
+        if cfg.no_trade_band > 0 and prev_weights and weights:
+            from .portfolio_construction import apply_no_trade_band
+            weights = apply_no_trade_band(weights, prev_weights, cfg.no_trade_band)
         if drift_skip and prev_weights and weights and \
                 _l1(weights, prev_weights) < cfg.l1_drift_skip:
             weights = prev_weights
@@ -94,6 +99,8 @@ def run_backtest(
             port_ret += w * fr
 
         turnover = 0.5 * _l1(weights, prev_weights)
+        turnovers.append(turnover)
+        cost_drag += turnover * cost
         net_ret = port_ret - turnover * cost
 
         equity *= (1.0 + net_ret)
@@ -108,6 +115,8 @@ def run_backtest(
 
     res.stats = _stats(res.period_returns, res.equity, periods_per_year)
     res.stats["missing_forward_prices"] = missing_fwd
+    res.stats["avg_turnover"] = round(statistics.mean(turnovers), 3) if turnovers else 0.0
+    res.stats["cost_drag"] = round(cost_drag, 4)
     res.stats["pct_periods_traded"] = (
         round(res.n_traded / res.n_periods, 3) if res.n_periods else 0.0)
     return res

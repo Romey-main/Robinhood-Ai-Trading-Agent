@@ -84,6 +84,45 @@ def _apply_caps(weights: dict, target_gross: float, cfg, sectors: dict | None) -
     return {s: round(v, 6) for s, v in w.items() if v > 1e-9}
 
 
+def turnover(prev: dict, new: dict) -> float:
+    """One-way turnover (fraction of the book traded) between two weight vectors."""
+    keys = set(prev) | set(new)
+    return 0.5 * sum(abs(new.get(k, 0.0) - prev.get(k, 0.0)) for k in keys)
+
+
+def apply_no_trade_band(target: dict, current: dict, band: float) -> dict:
+    """Hold a name at its current weight when the target is within ``band`` of it.
+
+    Suppresses small, churny trades (and their costs). Full entries/exits — a
+    name present in only one of the two books — always trade; they aren't small.
+    """
+    if band <= 0 or not current:
+        return dict(target)
+    out = {}
+    for s in set(target) | set(current):
+        t, c = target.get(s, 0.0), current.get(s, 0.0)
+        if c > 0 and t > 0 and abs(t - c) <= band:
+            out[s] = c                       # within band -> hold, don't trade
+        elif t > 0:
+            out[s] = t                       # rebalance to target
+        # name only in current (t == 0) -> full exit (dropped)
+    return {s: w for s, w in out.items() if w > 1e-9}
+
+
+def blend(weight_dicts: list, sleeve_weights: list) -> dict:
+    """Weighted blend of several sleeves' weight vectors (sleeve weights renormalized)."""
+    out: dict = {}
+    tot = sum(sleeve_weights) or 1.0
+    for w, sw in zip(weight_dicts, sleeve_weights):
+        for s, x in w.items():
+            out[s] = out.get(s, 0.0) + (sw / tot) * x
+    return out
+
+
+# public alias — composite construction (e.g. the `combine` command) re-caps a blend
+apply_caps = _apply_caps
+
+
 def construct(selected, target_n, panel, asof, cfg, sectors=None):
     """Return ``(weights, notes)`` for ``selected`` under the cfg's scheme + caps."""
     notes: list = []

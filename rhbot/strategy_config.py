@@ -26,6 +26,7 @@ class StrategyConfig:
     vol_lookback_days: int = 60        # window for vol weighting / targeting
     max_sector_weight: float = 0.30    # cap any one sector (needs a sector map)
     target_annual_vol: float = 0.0     # >0 scales gross exposure to this vol
+    no_trade_band: float = 0.0         # hold names whose target is within this of current
 
     # --- portfolio risk / circuit breakers -----------------------------
     min_valid_fraction: float = 0.80   # <80% of basket valid => DO NOT TRADE

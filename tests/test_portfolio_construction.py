@@ -5,7 +5,8 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from rhbot.panel import Panel
-from rhbot.portfolio_construction import construct
+from rhbot.portfolio_construction import (
+    apply_no_trade_band, blend, construct, turnover)
 from rhbot.strategy_config import StrategyConfig
 
 
@@ -56,6 +57,25 @@ class ConstructTest(unittest.TestCase):
         w, notes = construct(["A", "B"], 2, panel, panel.latest_date(), cfg, sectors=None)
         self.assertLess(sum(w.values()), 1.0)                      # held partly in cash
         self.assertTrue(any("vol-target" in n for n in notes))
+
+
+    def test_turnover(self):
+        self.assertAlmostEqual(turnover({"A": 0.5, "B": 0.5}, {"A": 0.5, "C": 0.5}), 0.5)
+        self.assertAlmostEqual(turnover({"A": 1.0}, {"A": 1.0}), 0.0)
+
+    def test_no_trade_band_holds_small_deltas(self):
+        banded = apply_no_trade_band({"A": 0.52, "B": 0.20}, {"A": 0.50, "B": 0.50}, band=0.05)
+        self.assertAlmostEqual(banded["A"], 0.50)        # 0.02 <= band -> hold
+        self.assertAlmostEqual(banded["B"], 0.20)        # 0.30  > band -> trade
+        self.assertEqual(apply_no_trade_band({"A": 1.0}, {"A": 1.0}, 0.0), {"A": 1.0})
+
+    def test_blend_mixes_and_renormalizes(self):
+        b = blend([{"A": 1.0}, {"B": 1.0}], [0.5, 0.5])
+        self.assertAlmostEqual(b["A"], 0.5)
+        self.assertAlmostEqual(b["B"], 0.5)
+        b2 = blend([{"A": 1.0}, {"B": 1.0}], [3, 1])     # unequal -> renormalized
+        self.assertAlmostEqual(b2["A"], 0.75)
+        self.assertAlmostEqual(b2["B"], 0.25)
 
 
 if __name__ == "__main__":

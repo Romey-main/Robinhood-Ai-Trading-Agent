@@ -46,6 +46,24 @@ After a sleeve picks its names, a shared construction layer
 
 Anything that can't be placed under the caps stays in **cash** — never forced in.
 
+## Combining sleeves & turnover control
+
+**Multi-sleeve portfolio (`combine`).** Blend sleeves into one vetted book:
+```bash
+python -m rhbot combine --sleeves momentum:0.5,low_vol:0.5 \
+    --members data/membership.json --panel data/panel_full.csv
+```
+The blend is re-capped (sector/name) as one portfolio. Blending the high-vol
+momentum book with the defensive low-vol book cuts top-sector concentration from
+**30% → 15%** — diversification across *factors*, not just names.
+
+**Turnover & cost.** Costs are charged on turnover everywhere (often the whole
+story at small size). The backtest reports `avg_turnover` and total `cost_drag`;
+`rebalance --current book.json` reports turnover vs your live book (buys/exits +
+estimated bps). A **no-trade band** (`no_trade_band`) holds names whose target is
+within the band of current — it trims *weight-drift* churn, though not
+*composition* churn (names entering/leaving the basket always trade).
+
 ## Risk-first architecture (the pipeline)
 
 Every rebalance flows **strategy → data-quality → portfolio risk**, and it is

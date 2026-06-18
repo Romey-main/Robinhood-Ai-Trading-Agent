@@ -171,18 +171,75 @@ def _load_sectors(path):
     return None
 
 
-def _load_strategy_inputs(args):
+def _load_data_inputs(args):
     scfg = StrategyConfig.load(args.strategy_config)
     panel = Panel.from_csv(args.panel)
     members_path = getattr(args, "members", None)
     membership = Membership.from_json(members_path, fallback_symbols=set(panel.symbols())) \
         if members_path else Membership(None, set(panel.symbols()))
     denylist = Denylist.from_file(args.denylist)
+    sectors = _load_sectors(getattr(args, "sectors", None))
+    return scfg, panel, membership, denylist, sectors
+
+
+def _load_strategy_inputs(args):
+    scfg, panel, membership, denylist, sectors = _load_data_inputs(args)
     strat_cls = REGISTRY[args.strategy]
     top_n = getattr(args, "top_n", None)
     strat = strat_cls(top_n=top_n) if top_n else strat_cls()
-    sectors = _load_sectors(getattr(args, "sectors", None))
     return scfg, panel, membership, denylist, strat, sectors
+
+
+def _load_current(path):
+    import json
+    import os
+    if not path or not os.path.exists(path):
+        return None
+    with open(path) as fh:
+        return {k.upper(): float(v) for k, v in json.load(fh).items()}
+
+
+def _report_decision(basket, decision, account_value, current=None, cfg=None, max_show=60):
+    d = decision.diagnostics
+    print(f"data-quality pass {d['dq_pass']}/{d['considered']} "
+          f"({d['dq_rate']*100:.0f}%); after filters {d['valid_after_filters']}; "
+          f"selected {d['selected']}")
+    for n in basket.notes:
+        print(f"  note: {n}")
+    print(f"\n>>> DECISION: {decision.action} <<<")
+    for b in decision.blockers:
+        print(f"  BLOCKER: {b}")
+    for w in decision.warnings:
+        print(f"  warning: {w}")
+
+    if decision.will_trade:
+        print(f"\nTarget basket ({d['gross_exposure']*100:.0f}% invested, "
+              f"{decision.cash_weight*100:.0f}% cash):")
+        shown = sorted(basket.selected, key=lambda s: -decision.final_weights.get(s, 0))
+        for s in shown[:max_show]:
+            print(f"  {s:<6} {decision.final_weights.get(s, 0)*100:5.2f}%")
+        if len(shown) > max_show:
+            print(f"  ... and {len(shown) - max_show} more")
+        if current is not None:
+            from .portfolio_construction import apply_no_trade_band
+            from .portfolio_construction import turnover as _turnover
+            fw = decision.final_weights
+            to = _turnover(current, fw)
+            cbps = to * (cfg.cost_bps if cfg else 5.0)
+            buys = len(set(fw) - set(current))
+            exits = len(set(current) - set(fw))
+            line = (f"\n  turnover {to*100:.0f}% vs current book "
+                    f"({buys} buys, {exits} exits); est cost ~{cbps:.0f}bps")
+            if cfg and cfg.no_trade_band > 0:
+                tb = _turnover(current, apply_no_trade_band(fw, current, cfg.no_trade_band))
+                line += f"  [{tb*100:.0f}% with the {cfg.no_trade_band*100:.1f}% no-trade band]"
+            print(line)
+    if basket.rejects:
+        sample = list(basket.rejects.items())[:6]
+        print(f"\nRejected (showing {len(sample)}/{len(basket.rejects)}):")
+        for s, why in sample:
+            print(f"  - {s:<6} {why}")
+    print("\nPAPER/ADVISORY only — this command places no orders.\n")
 
 
 def cmd_rebalance(args) -> None:
@@ -203,33 +260,57 @@ def cmd_rebalance(args) -> None:
 
     basket = strat.generate(panel, members, asof, scfg, denylist=denylist, sectors=sectors)
     decision = vet(basket, scfg, account_value=args.account_value)
+    _report_decision(basket, decision, args.account_value,
+                     current=_load_current(getattr(args, "current", None)), cfg=scfg)
 
-    d = decision.diagnostics
-    print(f"data-quality pass {d['dq_pass']}/{d['considered']} "
-          f"({d['dq_rate']*100:.0f}%); after filters {d['valid_after_filters']}; "
-          f"selected {d['selected']}")
-    if basket.notes:
-        for n in basket.notes:
-            print(f"  note: {n}")
 
-    print(f"\n>>> DECISION: {decision.action} <<<")
-    for b in decision.blockers:
-        print(f"  BLOCKER: {b}")
-    for w in decision.warnings:
-        print(f"  warning: {w}")
+def _parse_sleeves(spec: str):
+    out = []
+    for part in (spec or "momentum:0.5,low_vol:0.5").split(","):
+        name, _, w = part.partition(":")
+        name = name.strip()
+        if name not in REGISTRY:
+            raise SystemExit(f"unknown sleeve '{name}'; choose from {sorted(REGISTRY)}")
+        out.append((name, float(w) if w else 1.0))
+    return out
 
-    if decision.will_trade:
-        print(f"\nTarget basket ({d['gross_exposure']*100:.0f}% invested, "
-              f"{decision.cash_weight*100:.0f}% cash):")
-        for s in basket.selected:
-            print(f"  {s:<6} {decision.final_weights.get(s, 0)*100:5.2f}%")
-    # show a few representative rejects for transparency
-    if basket.rejects:
-        sample = list(basket.rejects.items())[:6]
-        print(f"\nRejected (showing {len(sample)}/{len(basket.rejects)}):")
-        for s, why in sample:
-            print(f"  - {s:<6} {why}")
-    print("\nPAPER/ADVISORY only — this command places no orders.\n")
+
+def cmd_combine(args) -> None:
+    from .portfolio_construction import apply_caps, blend
+    from .strategies.base import TargetBasket
+    scfg, panel, membership, denylist, sectors = _load_data_inputs(args)
+    asof = args.asof or panel.latest_date()
+    members = (membership.members_asof(asof)
+               if membership.has_snapshots else set(panel.symbols()))
+    sleeves = _parse_sleeves(args.sleeves)
+    tot_w = sum(w for _, w in sleeves)
+
+    print(f"\n=== combined rebalance @ {asof} ===")
+    print(f"feed latest date {panel.latest_date()}; universe={len(members)}; "
+          f"sleeves: {', '.join(f'{n} {w/tot_w*100:.0f}%' for n, w in sleeves)}")
+
+    subs = [(REGISTRY[n]().generate(panel, members, asof, scfg,
+                                    denylist=denylist, sectors=sectors), w)
+            for n, w in sleeves]
+    blended = blend([b.weights for b, _ in subs], [w for _, w in subs])
+    capped = apply_caps(blended, min(1.0, sum(blended.values())), scfg, sectors)
+
+    cb = TargetBasket(asof=asof, strategy="combo")
+    cb.weights = capped
+    cb.selected = sorted(capped, key=lambda s: -capped[s])
+    cb.n_considered = max((b.n_considered for b, _ in subs), default=0)
+    cb.n_dq_pass = max((b.n_dq_pass for b, _ in subs), default=0)
+    cb.n_valid = len(capped)
+    for (b, _), (n, w) in zip(subs, sleeves):
+        cb.notes.append(f"sleeve {n}: {w/tot_w*100:.0f}% ({len(b.selected)} names)")
+    if sectors and capped:
+        from .portfolio_construction import _sector_totals
+        sec = max(_sector_totals(capped, sectors).items(), key=lambda x: x[1])
+        cb.notes.append(f"top sector: {sec[0]} {sec[1]*100:.0f}%")
+
+    decision = vet(cb, scfg, account_value=args.account_value)
+    _report_decision(cb, decision, args.account_value,
+                     current=_load_current(getattr(args, "current", None)), cfg=scfg)
 
 
 def cmd_backtest(args) -> None:
@@ -253,6 +334,9 @@ def cmd_backtest(args) -> None:
     print(f"  hit rate:      {s.get('hit_rate', 0)*100:.0f}%")
     print(f"  traded {res.n_traded}/{res.n_periods} periods, "
           f"{res.n_cash} in cash; cost {scfg.cost_bps:.0f}bps/turnover")
+    print(f"  avg turnover:  {s.get('avg_turnover', 0)*100:.0f}%/period; "
+          f"total cost drag {s.get('cost_drag', 0)*100:.1f}%"
+          + (f"; no-trade band {scfg.no_trade_band*100:.1f}%" if scfg.no_trade_band else ""))
     if s.get("missing_forward_prices"):
         print(f"  note: {s['missing_forward_prices']} missing forward prices "
               f"(treated as exited at entry)")
@@ -376,14 +460,17 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("report", help="performance stats").set_defaults(func=cmd_report)
     sub.add_parser("status", help="open positions").set_defaults(func=cmd_status)
 
-    def _add_strategy_args(sp):
-        sp.add_argument("--strategy", required=True, choices=sorted(REGISTRY))
+    def _add_data_args(sp):
         sp.add_argument("--panel", required=True, help="CSV: date,symbol,adj_close")
         sp.add_argument("--members", help="JSON of point-in-time index membership")
         sp.add_argument("--denylist", default=DEFAULT_DENYLIST)
         sp.add_argument("--strategy-config", default=DEFAULT_STRATEGY_CONFIG)
         sp.add_argument("--sectors", default=None,
                         help="JSON {ticker: sector} for sector caps (default: data/sectors.json)")
+
+    def _add_strategy_args(sp):
+        sp.add_argument("--strategy", required=True, choices=sorted(REGISTRY))
+        _add_data_args(sp)
         sp.add_argument("--top-n", type=int, default=None,
                         help="override basket size (default: spec value)")
 
@@ -391,6 +478,8 @@ def build_parser() -> argparse.ArgumentParser:
     _add_strategy_args(rb)
     rb.add_argument("--asof", help="evaluation date (default: panel's latest)")
     rb.add_argument("--account-value", type=float, default=None)
+    rb.add_argument("--current", default=None,
+                    help="JSON {ticker: weight} of current book -> turnover/cost report")
     rb.set_defaults(func=cmd_rebalance)
 
     bt = sub.add_parser("backtest", help="walk-forward backtest through the risk pipeline")
@@ -399,6 +488,15 @@ def build_parser() -> argparse.ArgumentParser:
     bt.add_argument("--drift-skip", action="store_true",
                     help="skip rebalance when L1 drift < threshold (momentum)")
     bt.set_defaults(func=cmd_backtest)
+
+    cm = sub.add_parser("combine", help="blend multiple sleeves into one vetted book")
+    _add_data_args(cm)
+    cm.add_argument("--sleeves", default="momentum:0.5,low_vol:0.5",
+                    help="comma list of strategy:weight (e.g. momentum:0.5,low_vol:0.5)")
+    cm.add_argument("--asof", help="evaluation date (default: panel's latest)")
+    cm.add_argument("--account-value", type=float, default=None)
+    cm.add_argument("--current", default=None, help="JSON {ticker: weight} -> turnover report")
+    cm.set_defaults(func=cmd_combine)
 
     bm = sub.add_parser("build-membership",
                         help="vendor holdings -> point-in-time membership.json")
