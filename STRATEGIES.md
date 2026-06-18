@@ -229,6 +229,28 @@ Until then, the mean-reversion sleeve remains **un-validated** (its spec said
 justified. The momentum sleeve's "16-year, Sharpe 0.65" claim lives in the spec
 and likewise needs to be reproduced on real data here before it's trusted.
 
+## The bias-free path: the walk-forward paper ledger
+
+The honest answer to the warning above. Instead of replaying the *past* (which
+needs point-in-time membership nobody has for free), record each basket **as you
+run it** and mark it forward:
+
+```bash
+# each rebalance: append the vetted basket (records the REAL index at that moment)
+python -m rhbot paper-record --sleeves momentum:0.5,low_vol:0.5 \
+    --members data/membership.json --panel data/panel.csv
+
+# anytime: mark every recorded basket forward with realized prices
+python -m rhbot paper-report --panel data/panel.csv
+```
+
+Because each entry uses the membership that was real *on its date*, the resulting
+track record is **survivorship-free by construction** — no point-in-time history
+required. It just takes calendar time to accumulate. `data/paper_ledger.json`
+already holds the first real entry; append one each rebalance and the report
+becomes a genuine, trustworthy verdict on the sleeves. This is the only free path
+that turns the illustrative backtest Sharpes above into numbers you can believe.
+
 ## Scale reality at $50
 
 These are diversified *portfolio* sleeves (10 and 50 names). On $50 that's

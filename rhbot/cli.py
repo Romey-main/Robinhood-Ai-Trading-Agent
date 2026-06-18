@@ -23,6 +23,7 @@ from .providers import JsonProvider
 from .strategy_config import StrategyConfig
 from .panel import Panel
 from .universe import Membership, Denylist
+from .paper import PaperLedger, mark
 from .strategies import REGISTRY, CompositeStrategy
 from .portfolio_risk import vet
 from .backtest import (run_backtest, weekly_rebalance_dates,
@@ -342,6 +343,59 @@ def cmd_backtest(args) -> None:
     _print_backtest(res, scfg, args.freq)
 
 
+def cmd_paper_record(args) -> None:
+    scfg, panel, membership, denylist, sectors = _load_data_inputs(args)
+    strat = _strategy_from_args(args)
+    asof = args.asof or panel.latest_date()
+    members = (membership.members_asof(asof)
+               if membership.has_snapshots else set(panel.symbols()))
+    basket = strat.generate(panel, members, asof, scfg, denylist=denylist, sectors=sectors)
+    decision = vet(basket, scfg, account_value=args.account_value)
+    if not decision.will_trade:
+        print(f"\nDID NOT RECORD — risk layer says {decision.action}:")
+        for b in decision.blockers:
+            print(f"  BLOCKER: {b}")
+        print()
+        return
+    led = PaperLedger(args.ledger)
+    led.record(asof, basket.strategy, decision.final_weights)
+    print(f"\nRecorded {basket.strategy} basket @ {asof} "
+          f"({len(decision.final_weights)} names) -> {args.ledger} "
+          f"({len(led.entries)} entries).")
+    print("Records the REAL index at this moment -> bias-free. Mark it forward "
+          "anytime with `paper-report`.\n")
+
+
+def cmd_paper_report(args) -> None:
+    panel = Panel.from_csv(args.panel)
+    led = PaperLedger(args.ledger)
+    if not led.entries:
+        print(f"\nLedger {args.ledger} is empty — run `paper-record` first.\n")
+        return
+    asof = args.asof or panel.latest_date()
+    rows, eq, stats = mark(led.entries, panel, asof)
+    marked = [r for r in rows if r["ret"] is not None]
+    print(f"\n=== Paper track record ({args.ledger}) marked @ {asof} ===")
+    print(f"  entries: {len(led.entries)}; marked periods: {len(marked)}")
+    if stats.get("note"):
+        print(f"  {stats['note']} — record more baskets over time to build history")
+    else:
+        print(f"  cumulative:    {(eq[-1][1] - 1)*100:+.1f}%")
+        print(f"  ann. return:   {stats.get('ann_return', 0)*100:+.1f}% "
+              f"(~{stats['ppy']} periods/yr)")
+        print(f"  ann. vol:      {stats.get('ann_vol', 0)*100:.1f}%")
+        print(f"  Sharpe:        {stats.get('sharpe')}")
+        print(f"  max drawdown:  {stats.get('max_drawdown', 0)*100:.1f}%")
+        print(f"  hit rate:      {stats.get('hit_rate', 0)*100:.0f}%")
+    print("\n  recent entries:")
+    for r in rows[-12:]:
+        ret = "  open " if r["ret"] is None else f"{r['ret']*100:+5.1f}%"
+        print(f"    {r['date']}  {r['strategy']:<12} -> {r['end']}  {ret}  eq {r['equity']:.3f}")
+    if stats.get("missing_forward_prices"):
+        print(f"  note: {stats['missing_forward_prices']} missing forward prices")
+    print("\nForward entries use point-in-time membership -> bias-free. PAPER only.\n")
+
+
 def cmd_build_membership(args) -> None:
     if args.holdings_dir:
         snaps = ingest.membership_from_holdings_dir(
@@ -499,6 +553,24 @@ def build_parser() -> argparse.ArgumentParser:
     cm.add_argument("--account-value", type=float, default=None)
     cm.add_argument("--current", default=None, help="JSON {ticker: weight} -> turnover report")
     cm.set_defaults(func=cmd_combine)
+
+    pr = sub.add_parser("paper-record",
+                        help="append today's vetted basket to the forward track record")
+    _add_data_args(pr)
+    pr.add_argument("--strategy", choices=sorted(REGISTRY), help="single sleeve")
+    pr.add_argument("--sleeves", help="OR a blend, e.g. momentum:0.5,low_vol:0.5")
+    pr.add_argument("--top-n", type=int, default=None)
+    pr.add_argument("--asof", help="record date (default: panel's latest)")
+    pr.add_argument("--account-value", type=float, default=None)
+    pr.add_argument("--ledger", default="data/paper_ledger.json")
+    pr.set_defaults(func=cmd_paper_record)
+
+    pp = sub.add_parser("paper-report",
+                        help="mark the recorded baskets forward -> realized track record")
+    pp.add_argument("--panel", required=True, help="CSV: date,symbol,adj_close")
+    pp.add_argument("--ledger", default="data/paper_ledger.json")
+    pp.add_argument("--asof", help="mark date (default: panel's latest)")
+    pp.set_defaults(func=cmd_paper_report)
 
     bm = sub.add_parser("build-membership",
                         help="vendor holdings -> point-in-time membership.json")
