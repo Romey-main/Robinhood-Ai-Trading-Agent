@@ -81,6 +81,31 @@ class Panel:
             return None
         return p1 / p0 - 1.0
 
+    def trailing_vol(self, symbol: str, asof: str, lookback_days: int):
+        """Std-dev of daily returns over the trailing window (per-day, not annualized).
+
+        Used for inverse-volatility weighting and vol targeting. Returns None if
+        the window has a gap or non-positive price (fail-closed, like the rest).
+        """
+        end = self._date_on_or_before(asof)
+        if end is None:
+            return None
+        i = self._idx[end]
+        if i - lookback_days < 0:
+            return None
+        px = []
+        for j in range(i - lookback_days, i + 1):
+            p = self.price_asof(symbol, self.dates[j])
+            if not _finite_pos(p):
+                return None
+            px.append(p)
+        rets = [px[k] / px[k - 1] - 1.0 for k in range(1, len(px))]
+        if len(rets) < 2:
+            return None
+        mean = sum(rets) / len(rets)
+        var = sum((r - mean) ** 2 for r in rets) / (len(rets) - 1)
+        return math.sqrt(var)
+
     def window_return(self, symbol: str, start_iso: str, end_iso: str):
         """Total return between two calendar dates (uses on-or-before prices)."""
         p0 = self.price_asof(symbol, start_iso)

@@ -36,8 +36,11 @@ class MeanReversionTest(unittest.TestCase):
         b = strat.generate(panel, set(self.paths), self.asof, self.cfg,
                            denylist=Denylist({"DENY"}))
         self.assertEqual(b.selected, ["AAA", "BBB", "CCC"])
+        # equal-weighted, but each capped at the per-name limit (rest -> cash):
+        # 3 names would be 1/3 each, which exceeds the 12% concentration cap.
+        expect = min(1 / 3, self.cfg.max_name_weight)
         for s in b.selected:
-            self.assertAlmostEqual(b.weights[s], 1 / 3, places=5)
+            self.assertAlmostEqual(b.weights[s], expect, places=5)
 
     def test_event_floor_deny_excluded(self):
         panel = synth.panel_from_paths(self.paths, self.dates)

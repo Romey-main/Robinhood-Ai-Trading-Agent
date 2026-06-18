@@ -4,7 +4,7 @@ Two long-only, rules-based equity sleeves, implemented from the planning specs.
 Risk management and data integrity are the first-class concern here, not an
 afterthought.
 
-## The two strategies
+## The strategies (three sleeves)
 
 ### 1. Short-term mean reversion (`mean_reversion`)
 Rank Russell 1000 by **trailing 5-day total return ascending**, buy the 10
@@ -22,6 +22,29 @@ Classical Jegadeesh-Titman. Rank by **total return over a 12-month formation
 window ending one month ago** (the 1-month skip avoids short-term-reversal
 contamination), buy the top 50 equal-weight (2% each), hold ~1 month, re-rank.
 Monthly, with a turnover-suppression skip when portfolio drift is small.
+
+### 3. Low volatility (`low_vol`)
+Rank by **trailing realized volatility ascending**, buy the 30 lowest-vol names.
+The low-vol anomaly: low-risk stocks have historically delivered better
+*risk-adjusted* returns than high-risk ones. This is the defensive sleeve — it
+tilts to utilities, REITs, and staples, so it diversifies the momentum book
+(which loads on high-vol semis/AI names).
+
+## Portfolio construction (weighting + concentration caps)
+
+After a sleeve picks its names, a shared construction layer
+(`portfolio_construction.py`) turns them into final weights:
+- **Weighting** — `equal` (default) or `inverse_vol` (risk-balanced: each name
+  contributes similar volatility).
+- **Sector caps** — no single sector exceeds `max_sector_weight` (default 30%),
+  using the GICS sectors from your iShares file (`data/sectors.json`, auto-loaded).
+  On the live momentum basket this pulls Information Technology from **48% → 30%**,
+  spreading the rest across Industrials, Communication, Energy, Health Care.
+- **Per-name cap** — `max_name_weight` (default 12%).
+- **Vol targeting** — set `target_annual_vol > 0` to scale gross exposure down
+  (hold cash) when the basket's estimated volatility runs hot.
+
+Anything that can't be placed under the caps stays in **cash** — never forced in.
 
 ## Risk-first architecture (the pipeline)
 

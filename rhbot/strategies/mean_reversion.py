@@ -14,6 +14,7 @@ from __future__ import annotations
 
 from .base import Strategy, TargetBasket
 from ..data_quality import validate_series
+from ..portfolio_construction import construct
 
 
 class ShortTermReversal(Strategy):
@@ -26,7 +27,7 @@ class ShortTermReversal(Strategy):
     def required_history(self) -> int:
         return self.lookback_days + 2
 
-    def generate(self, panel, members, asof, cfg, denylist=None) -> TargetBasket:
+    def generate(self, panel, members, asof, cfg, denylist=None, sectors=None) -> TargetBasket:
         candidates = sorted(set(members) & set(panel.symbols()))
         b = TargetBasket(asof=asof, strategy=self.name, n_considered=len(candidates))
 
@@ -56,12 +57,8 @@ class ShortTermReversal(Strategy):
         ranked.sort(key=lambda x: (x[1], x[0]))
         b.selected = [s for s, _ in ranked[:self.top_n]]
 
-        # Risk-first weighting: nominal 1/top_n per name; if fewer than top_n
-        # qualify, the remainder stays in CASH rather than concentrating.
-        w = 1.0 / self.top_n
-        b.weights = {s: round(w, 6) for s in b.selected}
-        if len(b.selected) < self.top_n:
-            b.notes.append(
-                f"only {len(b.selected)}/{self.top_n} names qualified -> "
-                f"{(1 - len(b.selected) * w) * 100:.0f}% held in cash")
+        # Risk-first construction: weighting scheme + per-name/sector caps; any
+        # weight that can't be placed (or fewer than top_n qualify) stays CASH.
+        b.weights, cnotes = construct(b.selected, self.top_n, panel, asof, cfg, sectors)
+        b.notes.extend(cnotes)
         return b

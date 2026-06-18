@@ -21,6 +21,12 @@ class StrategyConfig:
     # --- event filter (mean-reversion) ---------------------------------
     event_move_cap: float = 0.20       # exclude |trailing return| > 20%
 
+    # --- portfolio construction (weighting + concentration) ------------
+    weight_scheme: str = "equal"       # "equal" or "inverse_vol" (risk-balanced)
+    vol_lookback_days: int = 60        # window for vol weighting / targeting
+    max_sector_weight: float = 0.30    # cap any one sector (needs a sector map)
+    target_annual_vol: float = 0.0     # >0 scales gross exposure to this vol
+
     # --- portfolio risk / circuit breakers -----------------------------
     min_valid_fraction: float = 0.80   # <80% of basket valid => DO NOT TRADE
     min_names_to_trade: int = 5        # need at least this many vetted names

@@ -207,6 +207,22 @@ def tickers_from_holdings_file(path: str, ticker_col: str = "Ticker") -> set:
             if len(r) > col and _looks_like_ticker(r[col])}
 
 
+def sector_map_from_holdings_file(path: str, ticker_col: str = "Ticker",
+                                  sector_col: str = "Sector") -> dict:
+    """{ticker: sector} from a vendor holdings file (for sector-cap construction)."""
+    rows = _rows_from_file(path, ticker_col)
+    hdr = next((i for i, r in enumerate(rows) if ticker_col in r and sector_col in r), None)
+    if hdr is None:
+        return {}
+    tc, sc = rows[hdr].index(ticker_col), rows[hdr].index(sector_col)
+    out = {}
+    for r in rows[hdr + 1:]:
+        if len(r) > max(tc, sc) and _looks_like_ticker(r[tc]):
+            sec = r[sc].strip() or "Unknown"
+            out[r[tc].strip().upper()] = sec
+    return out
+
+
 def append_membership_snapshot(path: str, date: str, tickers) -> int:
     """Record one dated constituent snapshot, building point-in-time history.
 

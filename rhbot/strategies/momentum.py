@@ -17,6 +17,7 @@ from datetime import date
 from .base import Strategy, TargetBasket
 from ..data_quality import validate_series
 from ..panel import add_months
+from ..portfolio_construction import construct
 
 
 class Momentum12_1(Strategy):
@@ -32,7 +33,7 @@ class Momentum12_1(Strategy):
         # ~21 trading days per month, plus a small buffer
         return self.formation_months * 21 + 5
 
-    def generate(self, panel, members, asof, cfg, denylist=None) -> TargetBasket:
+    def generate(self, panel, members, asof, cfg, denylist=None, sectors=None) -> TargetBasket:
         asof_d = date.fromisoformat(asof)
         start_iso = add_months(asof_d, -self.formation_months).isoformat()
         end_iso = add_months(asof_d, -self.skip_months).isoformat()
@@ -62,10 +63,6 @@ class Momentum12_1(Strategy):
         ranked.sort(key=lambda x: (-x[1], x[0]))
         b.selected = [s for s, _ in ranked[:self.top_n]]
 
-        w = 1.0 / self.top_n
-        b.weights = {s: round(w, 6) for s in b.selected}
-        if len(b.selected) < self.top_n:
-            b.notes.append(
-                f"only {len(b.selected)}/{self.top_n} names qualified -> "
-                f"{(1 - len(b.selected) * w) * 100:.0f}% held in cash")
+        b.weights, cnotes = construct(b.selected, self.top_n, panel, asof, cfg, sectors)
+        b.notes.extend(cnotes)
         return b

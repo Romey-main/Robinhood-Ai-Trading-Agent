@@ -161,6 +161,16 @@ def cmd_status(args) -> None:
     print()
 
 
+def _load_sectors(path):
+    import json
+    import os
+    path = path or "data/sectors.json"
+    if os.path.exists(path):
+        with open(path) as fh:
+            return json.load(fh)
+    return None
+
+
 def _load_strategy_inputs(args):
     scfg = StrategyConfig.load(args.strategy_config)
     panel = Panel.from_csv(args.panel)
@@ -171,11 +181,12 @@ def _load_strategy_inputs(args):
     strat_cls = REGISTRY[args.strategy]
     top_n = getattr(args, "top_n", None)
     strat = strat_cls(top_n=top_n) if top_n else strat_cls()
-    return scfg, panel, membership, denylist, strat
+    sectors = _load_sectors(getattr(args, "sectors", None))
+    return scfg, panel, membership, denylist, strat, sectors
 
 
 def cmd_rebalance(args) -> None:
-    scfg, panel, membership, denylist, strat = _load_strategy_inputs(args)
+    scfg, panel, membership, denylist, strat, sectors = _load_strategy_inputs(args)
     asof = args.asof or panel.latest_date()
     if not membership.has_snapshots:
         print("\n[!] No point-in-time membership file given — falling back to the "
@@ -190,7 +201,7 @@ def cmd_rebalance(args) -> None:
     print(f"feed latest date {panel.latest_date()} ({stale}d from asof); "
           f"denylist={len(denylist)} names; universe={len(members)}")
 
-    basket = strat.generate(panel, members, asof, scfg, denylist=denylist)
+    basket = strat.generate(panel, members, asof, scfg, denylist=denylist, sectors=sectors)
     decision = vet(basket, scfg, account_value=args.account_value)
 
     d = decision.diagnostics
@@ -222,7 +233,7 @@ def cmd_rebalance(args) -> None:
 
 
 def cmd_backtest(args) -> None:
-    scfg, panel, membership, denylist, strat = _load_strategy_inputs(args)
+    scfg, panel, membership, denylist, strat, sectors = _load_strategy_inputs(args)
     if args.freq == "weekly":
         dates, ppy = weekly_rebalance_dates(panel), 52.0
     else:
@@ -231,7 +242,7 @@ def cmd_backtest(args) -> None:
         print("\nNot enough rebalance dates in the panel to backtest.\n")
         return
     res = run_backtest(strat, panel, membership, scfg, dates, ppy,
-                       denylist=denylist, drift_skip=args.drift_skip)
+                       denylist=denylist, drift_skip=args.drift_skip, sectors=sectors)
     s = res.stats
     print(f"\n=== Backtest: {strat.name} ({args.freq}, {s.get('n_periods')} periods) ===")
     print(f"  Sharpe:        {s.get('sharpe')}")
@@ -371,6 +382,8 @@ def build_parser() -> argparse.ArgumentParser:
         sp.add_argument("--members", help="JSON of point-in-time index membership")
         sp.add_argument("--denylist", default=DEFAULT_DENYLIST)
         sp.add_argument("--strategy-config", default=DEFAULT_STRATEGY_CONFIG)
+        sp.add_argument("--sectors", default=None,
+                        help="JSON {ticker: sector} for sector caps (default: data/sectors.json)")
         sp.add_argument("--top-n", type=int, default=None,
                         help="override basket size (default: spec value)")
 

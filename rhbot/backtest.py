@@ -57,6 +57,7 @@ def run_backtest(
     strategy, panel: Panel, membership: Membership, cfg: StrategyConfig,
     rebalance_dates: list[str], periods_per_year: float,
     denylist: Denylist | None = None, drift_skip: bool = False,
+    sectors: dict | None = None,
 ) -> BacktestResult:
     res = BacktestResult(strategy=strategy.name)
     equity = 1.0
@@ -70,7 +71,7 @@ def run_backtest(
         members = (membership.members_asof(d)
                    if membership.has_snapshots else set(panel.symbols()))
 
-        basket = strategy.generate(panel, members, d, cfg, denylist=denylist)
+        basket = strategy.generate(panel, members, d, cfg, denylist=denylist, sectors=sectors)
         decision = vet(basket, cfg)
 
         if not decision.will_trade:
