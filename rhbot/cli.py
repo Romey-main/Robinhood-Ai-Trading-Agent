@@ -396,6 +396,42 @@ def cmd_paper_report(args) -> None:
     print("\nForward entries use point-in-time membership -> bias-free. PAPER only.\n")
 
 
+def _spec_to_strategy(spec: str):
+    """A backtest spec: a single sleeve ('momentum') or a blend ('momentum:0.5+low_vol:0.5')."""
+    parts = [p.strip() for p in spec.split("+")]
+    if len(parts) == 1 and ":" not in parts[0]:
+        return REGISTRY[parts[0]]()
+    sleeves = []
+    for p in parts:
+        n, _, w = p.partition(":")
+        if n.strip() not in REGISTRY:
+            raise SystemExit(f"unknown sleeve '{n.strip()}' in '{spec}'")
+        sleeves.append((REGISTRY[n.strip()](), float(w) if w else 1.0))
+    return CompositeStrategy(sleeves)
+
+
+def cmd_tearsheet(args) -> None:
+    from .tearsheet import render
+    scfg, panel, membership, denylist, sectors = _load_data_inputs(args)
+    if args.freq == "weekly":
+        dates, ppy = weekly_rebalance_dates(panel), 52.0
+    else:
+        dates, ppy = monthly_rebalance_dates(panel), 12.0
+    if len(dates) < 3:
+        print("\nNot enough rebalance dates in the panel to chart.\n")
+        return
+    results = {}
+    for spec in args.compare.split(","):
+        spec = spec.strip()
+        results[spec] = run_backtest(_spec_to_strategy(spec), panel, membership, scfg,
+                                     dates, ppy, denylist=denylist,
+                                     drift_skip=args.drift_skip, sectors=sectors)
+    render(results, args.out, title=f"Backtest tearsheet ({args.freq})",
+           subtitle="ILLUSTRATIVE — survivorship-biased demo panel, not validation")
+    print(f"\nWrote {args.out} ({len(results)} curves). "
+          f"ILLUSTRATIVE — biased demo panel, not validation.\n")
+
+
 def cmd_build_membership(args) -> None:
     if args.holdings_dir:
         snaps = ingest.membership_from_holdings_dir(
@@ -571,6 +607,16 @@ def build_parser() -> argparse.ArgumentParser:
     pp.add_argument("--ledger", default="data/paper_ledger.json")
     pp.add_argument("--asof", help="mark date (default: panel's latest)")
     pp.set_defaults(func=cmd_paper_report)
+
+    ts = sub.add_parser("tearsheet", help="render an equity/drawdown comparison chart (PNG)")
+    _add_data_args(ts)
+    ts.add_argument("--compare", default="momentum,low_vol,momentum:0.5+low_vol:0.5",
+                    help="comma list of specs; a spec is a sleeve or a blend "
+                         "(e.g. momentum:0.5+low_vol:0.5)")
+    ts.add_argument("--freq", choices=["weekly", "monthly"], default="monthly")
+    ts.add_argument("--drift-skip", action="store_true")
+    ts.add_argument("--out", default="tearsheet.png")
+    ts.set_defaults(func=cmd_tearsheet)
 
     bm = sub.add_parser("build-membership",
                         help="vendor holdings -> point-in-time membership.json")

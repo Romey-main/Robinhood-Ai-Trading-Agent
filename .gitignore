@@ -10,3 +10,4 @@ env/
 .vscode/
 # keep ledger/*.json tracked — the paper journal is the whole point
 data/panel_full.csv
+*.png

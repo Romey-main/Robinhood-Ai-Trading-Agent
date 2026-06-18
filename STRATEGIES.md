@@ -71,6 +71,14 @@ risk:
 
 (Illustrative mechanics, **not** validation — see the survivorship warning below.)
 
+Render this as a chart with `tearsheet` (needs `pip install matplotlib`):
+```bash
+python -m rhbot tearsheet --members data/membership.json --panel data/panel.csv \
+    --compare "momentum,low_vol,momentum:0.5+low_vol:0.5" --out tearsheet.png
+```
+It overlays each curve's equity and drawdown — the combo visibly captures
+momentum's climb with shallower troughs.
+
 **Turnover & cost.** Costs are charged on turnover everywhere (often the whole
 story at small size). The backtest reports `avg_turnover` and total `cost_drag`;
 `rebalance --current book.json` reports turnover vs your live book (buys/exits +
