@@ -1,5 +1,8 @@
-# Core engine (screener, risk, paper_engine, CLI) uses ONLY the standard
-# library — no install needed to screen, paper-trade, or run the tests.
+# Core engine — screening, risk, paper-trading, the systematic sleeves
+# (momentum / low-vol / mean-reversion + composite), portfolio construction,
+# the backtester, the bias-free paper ledger, and the full test suite — uses
+# ONLY the Python standard library. No install needed for any of that.
 #
-# Optional: only required for the standalone Yahoo Finance data provider.
-yfinance>=0.2.40
+# Optional extras, each required by exactly one feature:
+yfinance>=0.2.40      # fetch-prices --source yahoo / build-panel-yahoo (free price pulls)
+matplotlib>=3.7       # tearsheet (equity + drawdown PNG charts)

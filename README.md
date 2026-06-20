@@ -1,9 +1,11 @@
 # Robinhood AI Trading Agent
 
-A **paper-first** research, screening, and trade-journaling toolkit for a small
-account. It helps you find liquid, moving stocks, attach news/sentiment, size a
-risk-bounded trade, and — most importantly — **measure whether the idea
-actually works before you risk real money.**
+A **paper-first**, risk-first toolkit for a small account. It started as a
+single-name screener + trade journal (find a liquid mover, size a risk-bounded
+trade, measure expectancy) and grew into a **systematic Russell 1000 portfolio
+engine** — factor sleeves, a fail-closed risk pipeline, a walk-forward
+backtester, and a bias-free paper ledger. The throughline is the same: **measure
+whether the idea actually works before you risk real money.**
 
 > ⚠️ **Read this first.** This repo does **not** place real orders. That is a
 > deliberate design choice. The strategy has to earn a track record on paper
@@ -49,42 +51,76 @@ rhbot/
   paper_engine.py    the measurement core: ledger, win rate, expectancy, drawdown
 
   # --- v2: systematic, risk-first portfolio sleeves ---
-  data_quality.py    per-name validation — the anti-rug / "no bad data" layer
-  universe.py        point-in-time index membership + corruption denylist
-  panel.py           date x symbol grid of split/dividend-adjusted closes
-  strategies/        mean_reversion (5-day) and momentum (12-1) sleeves
-  portfolio_risk.py  fail-closed vetting: circuit breakers, caps, cash routing
-  backtest.py        walk-forward backtest through the SAME risk pipeline
+  data_quality.py        per-name validation — the anti-rug / "no bad data" layer
+  universe.py            point-in-time index membership + corruption denylist
+  panel.py               date x symbol grid of split/dividend-adjusted closes
+  strategies/            momentum (12-1), low_vol, mean_reversion (5-day) + composite
+  portfolio_construction inverse-vol/sector-cap/vol-target weighting + turnover band
+  portfolio_risk.py      fail-closed vetting: circuit breakers, caps, cash routing
+  backtest.py            walk-forward backtest through the SAME risk pipeline
+  paper.py               walk-forward paper ledger — the bias-free track record
+  tearsheet.py           equity + drawdown comparison charts (PNG)
+  ingest.py              iShares .xls/.xlsx/.csv -> membership; vendor price panels
 
-  cli.py             `python -m rhbot screen|open|mark|report|rebalance|backtest`
+  cli.py             one entry point; see the command list below
   providers/         standalone Yahoo (optional) + JSON ingest
-tests/               39 unit tests (screener, risk, paper, data-quality,
-                     strategies, portfolio-risk, backtest)
-data/                example universe, sample price panel, denylist
-ledger/              your paper-trade journal (JSON)
+tests/               65 unit tests (screener, risk, paper, data-quality, strategies,
+                     construction, portfolio-risk, backtest, ledger, tearsheet)
+data/                real R1000 membership + sectors, demo panels, denylist, ledger seed
+.github/workflows/   monthly jobs: refresh membership + auto-append the paper ledger
 ```
 
 ## Systematic sleeves (v2) — risk and data integrity first
 
-Two long-only factor sleeves built from the planning specs: **5-day mean
-reversion** and **12-1 momentum**. Every rebalance runs
-`strategy → data-quality → portfolio risk` and is **fail-closed** — stale,
-non-finite, gapped, denylisted, or suspicious-jump data gets a name dropped,
-and a broken-looking feed or an over-concentrated basket returns
-`DO_NOT_TRADE`. Full design, the anti-"invalid information" guarantees, data
-requirements, and **honest backtest caveats** are in **[STRATEGIES.md](STRATEGIES.md)**.
+Three long-only factor sleeves — **12-1 momentum**, **low-volatility**, and
+**5-day mean-reversion** — plus a **composite** that blends them. Every rebalance
+runs `strategy → data-quality → portfolio construction → portfolio risk` and is
+**fail-closed**: stale, non-finite, gapped, denylisted, or suspicious-jump data
+drops a name, and a broken-looking feed or over-concentrated basket returns
+`DO_NOT_TRADE`. Construction adds inverse-vol weighting, **per-sector caps**
+(GICS from the iShares file — pulls a semis-heavy momentum book from 48%→30% tech),
+a per-name cap, optional vol-targeting, and turnover/cost control. Full design,
+the anti-"invalid information" guarantees, and **honest backtest caveats** are in
+**[STRATEGIES.md](STRATEGIES.md)**.
 
 ```bash
-python -m rhbot rebalance --strategy momentum --panel data/sample_panel.csv --account-value 50
-python -m rhbot backtest  --strategy mean_reversion --panel data/sample_panel.csv --freq weekly
+# vetted basket for one sleeve, or a blended book
+python -m rhbot rebalance --strategy momentum --members data/membership.json --panel data/panel.csv
+python -m rhbot combine   --sleeves momentum:0.5,low_vol:0.5 --members data/membership.json --panel data/panel.csv
+
+# walk-forward backtest (single or blended) and a PNG tearsheet
+python -m rhbot backtest  --sleeves momentum:0.5,low_vol:0.5 --members data/membership.json --panel data/panel.csv --freq monthly
+python -m rhbot tearsheet --members data/membership.json --panel data/panel.csv   # needs matplotlib
 ```
 
-> Demo panels: `sample_panel.csv` (14 mega-caps) and `r1000_demo_panel.csv`
-> (66 US stocks). They exercise the pipeline but **don't validate a strategy** —
-> real use needs the full point-in-time Russell 1000 panel + membership. Notably,
-> widening the demo from 14 to 66 names halved the mean-reversion Sharpe and
-> exposed a −27% drawdown: a live reminder not to trust a thin backtest.
-> See **[STRATEGIES.md](STRATEGIES.md)**.
+### Real data, free, no keys
+
+```bash
+# 1. membership: download the iShares IWB holdings (.xls/.xlsx/.csv all parse natively)
+python -m rhbot snapshot-membership --holdings-csv iSharesRussell1000ETF_fund.xls --out data/membership.json
+# 2. prices: ~13+ months of split+dividend-adjusted closes for the whole universe
+python -m rhbot fetch-prices --source yahoo --symbols-file data/r1000_tickers.txt --start 2024-01-01 --out data/panel.csv
+```
+`data/membership.json` (1003 real constituents) and `data/sectors.json` ship in
+the repo, so you can run the commands above immediately.
+
+### The honest validation path: the paper ledger
+
+Every backtest here is survivorship-biased (there's no *free* historical
+point-in-time membership). The fix is to stop replaying the past and record
+forward instead:
+
+```bash
+python -m rhbot paper-record --sleeves momentum:0.5,low_vol:0.5 --members data/membership.json --panel data/panel.csv
+python -m rhbot paper-report --panel data/panel.csv
+```
+
+Each entry uses the index membership that was real *on its date*, so the
+accumulating record is **survivorship-free by construction** — no paid data, it
+just needs calendar time. A monthly GitHub Action
+(`.github/workflows/monthly-paper-record.yml`) appends a basket automatically, so
+the track record builds itself. This is the only free path that turns an
+illustrative backtest Sharpe into a number you can trust.
 
 ## Quickstart
 
