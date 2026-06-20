@@ -1,0 +1,53 @@
+name: Monthly membership snapshot
+
+# Builds point-in-time Russell 1000 membership history for free, one month at a
+# time. Survivorship bias only hurts BACKTESTS of the past; by recording the
+# real index each month, you accumulate a genuine point-in-time record that —
+# given enough months — makes an unbiased backtest possible without paying a
+# constituents vendor.
+
+on:
+  schedule:
+    - cron: "0 6 1 * *"      # 06:00 UTC on the 1st of each month
+  workflow_dispatch: {}        # or run on demand
+
+permissions:
+  contents: write
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Record this month's constituents
+        run: |
+          if [ ! -f data/r1000_tickers.txt ]; then
+            echo "::warning::No data/r1000_tickers.txt found — add your constituents"
+            echo "source (e.g. from an iShares IWB export via 'rhbot build-membership',"
+            echo "or a vendor) so the snapshot has something to record. Skipping."
+            exit 0
+          fi
+          python -m rhbot snapshot-membership \
+            --tickers-file data/r1000_tickers.txt \
+            --date "$(date -u +%F)" \
+            --out data/membership.json
+
+      - name: Reconcile against the prior snapshot (audit log)
+        if: hashFiles('data/membership.json') != ''
+        run: python -m rhbot membership-diff --members data/membership.json || true
+
+      - name: Commit if changed
+        run: |
+          if ! git diff --quiet -- data/membership.json 2>/dev/null; then
+            git config user.name "rhbot-snapshot"
+            git config user.email "actions@users.noreply.github.com"
+            git add data/membership.json
+            git commit -m "chore: membership snapshot $(date -u +%F)"
+            git push
+          else
+            echo "No membership change to commit."
+          fi

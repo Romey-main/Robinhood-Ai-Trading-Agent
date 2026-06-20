@@ -1,0 +1,14 @@
+# Corruption / bad-data denylist — one ticker per line.
+#
+# Names listed here are excluded from BOTH strategies unconditionally, no matter
+# how they rank. Use it for tickers with known corrupted corporate-action data,
+# chronic bad ticks, or anything you've decided is untrustworthy.
+#
+# The strategy specs reference a 37-ticker denylist. Those exact tickers were
+# NOT provided to me, and I will not invent them — fabricating a list would be
+# exactly the "invalid information" you asked me to guard against. Paste your
+# real 37 tickers below (blank lines and #comments are ignored).
+#
+# EXAMPLE (commented out — not active):
+# ABCD
+# WXYZ

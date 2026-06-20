@@ -1,0 +1,15 @@
+{
+  "min_price": 10.0,
+  "max_staleness_days": 4,
+  "max_daily_move": 0.40,
+  "max_gap_days": 5,
+  "min_history_days": 30,
+  "event_move_cap": 0.20,
+  "min_valid_fraction": 0.80,
+  "min_names_to_trade": 5,
+  "max_name_weight": 0.12,
+  "on_reject": "cash",
+  "per_name_notional_floor": 1.0,
+  "cost_bps": 5.0,
+  "l1_drift_skip": 0.05
+}

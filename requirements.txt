@@ -1,0 +1,8 @@
+# Core engine — screening, risk, paper-trading, the systematic sleeves
+# (momentum / low-vol / mean-reversion + composite), portfolio construction,
+# the backtester, the bias-free paper ledger, and the full test suite — uses
+# ONLY the Python standard library. No install needed for any of that.
+#
+# Optional extras, each required by exactly one feature:
+yfinance>=0.2.40      # fetch-prices --source yahoo / build-panel-yahoo (free price pulls)
+matplotlib>=3.7       # tearsheet (equity + drawdown PNG charts)
