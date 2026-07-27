@@ -1,0 +1,3813 @@
+{
+  "config": {
+    "rounds": 10,
+    "bankroll_$": 1000.0,
+    "n_markets": 200,
+    "n_ticks": 50,
+    "regime": "mixed",
+    "seed": 7,
+    "learning": true
+  },
+  "history": [
+    {
+      "round": 0,
+      "scores": {
+        "incumbent": {
+          "bot": "incumbent",
+          "round": 0,
+          "pnl_$": -50.02,
+          "return_%": -5.0,
+          "maxDD_%": 5.18,
+          "sharpe": -0.393,
+          "trades": 174,
+          "contracts": 816,
+          "fees_$": 11.07,
+          "fee_per_ct_c": 1.36,
+          "maker_%": 0.0,
+          "brier": 0.1977,
+          "brier_skill_vs_mkt": -0.0423,
+          "ece": 0.1097,
+          "win_%": 36.8
+        },
+        "challenger": {
+          "bot": "challenger",
+          "round": 0,
+          "pnl_$": 17.39,
+          "return_%": 1.74,
+          "maxDD_%": 3.97,
+          "sharpe": 0.061,
+          "trades": 32,
+          "contracts": 531,
+          "fees_$": 6.15,
+          "fee_per_ct_c": 1.16,
+          "maker_%": 40.6,
+          "brier": 0.1896,
+          "brier_skill_vs_mkt": 0.0003,
+          "ece": 0.103,
+          "win_%": 28.1
+        }
+      },
+      "head_to_head": {
+        "challenger_vs_incumbent": {
+          "pnl_delta_$": 67.41,
+          "return_delta_%": 6.74,
+          "brier_delta": 0.0081,
+          "brier_skill_delta": 0.0425,
+          "maxDD_delta_%": 1.2098,
+          "fee_per_ct_delta_c": 0.1984,
+          "trades_delta": -142
+        }
+      },
+      "lessons": [
+        {
+          "kind": "segment",
+          "scope": "65-85c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 65-85c markets (efficient regime) lost -36.63c per contract over 71 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 71,
+          "p": 2.2600588067689387e-11,
+          "confidence": 0.29583333333333334
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|crossing|efficient",
+          "source": "challenger",
+          "statement": "challenger: crossing in 35-65c markets (efficient regime) lost -17.00c per contract over 68 contracts (p=0.001). Widen the hurdle here or stop trading it.",
+          "n": 68,
+          "p": 0.0006937824400896631,
+          "confidence": 0.2833333333333333
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent beat challenger by +12.18c per contract when crossing in 35-65c markets (efficient): -4.82c vs -17.00c over 147/68 contracts (p=0.062).",
+          "n": 68,
+          "p": 0.06230289445873294,
+          "confidence": 0.36647440728374214
+        },
+        {
+          "kind": "contrast",
+          "scope": "0-15c|crossing|efficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +21.18c per contract when crossing in 0-15c markets (efficient): +20.53c vs -0.66c over 76/105 contracts (p=0.000).",
+          "n": 76,
+          "p": 0.0004627119180833361,
+          "confidence": 0.5614295211654763
+        },
+        {
+          "kind": "capability",
+          "scope": "use_maker_first",
+          "source": "challenger",
+          "statement": "Resting orders earned +2.14c/contract for challenger while crossing earned -6.13c/contract for incumbent (302/816 contracts, p=0.003). Quoting inside the spread beats paying it, net of adverse selection.",
+          "n": 302,
+          "p": 0.0031993930121561043,
+          "confidence": 0.9840030349392195
+        },
+        {
+          "kind": "capability",
+          "scope": "use_market_prior",
+          "source": "challenger",
+          "statement": "challenger forecasts better than incumbent: Brier 0.1896 vs 0.1977 over 200/200 resolutions. Skill vs the market price: +0.000 vs -0.042. Blending the price into the estimate, rather than only subtracting it, is what closes that gap.",
+          "n": 200,
+          "p": 0.05,
+          "confidence": 0.4081063562336374
+        },
+        {
+          "kind": "capability",
+          "scope": "use_calibration",
+          "source": "challenger",
+          "statement": "Learning from every resolution, not only from settled trades, gave challenger 200 training examples this run. Its forecasts are better calibrated as a result (Brier 0.1896 vs 0.1977).",
+          "n": 200,
+          "p": 0.01,
+          "confidence": 0.16136650902561722
+        },
+        {
+          "kind": "capability",
+          "scope": "use_exact_fees",
+          "source": "challenger",
+          "statement": "challenger paid 1.16c/contract in fees against 1.36c for incumbent (0.20c cheaper). Modelling the per-order ceiling instead of the smooth per-contract formula changes which trades clear the hurdle, especially on small orders.",
+          "n": 531,
+          "p": 0.01,
+          "confidence": 0.39685111332668654
+        }
+      ],
+      "transfers": [
+        {
+          "learner": "incumbent",
+          "teacher": "challenger",
+          "params": [
+            {
+              "param": "kelly_fraction",
+              "old": 0.18,
+              "new": 0.22078,
+              "weight": 0.999,
+              "evidence": {
+                "mean_a": 3.275,
+                "mean_b": -6.1299,
+                "n_a": 531,
+                "n_b": 816,
+                "t": 3.884,
+                "p": 0.0001,
+                "effect": 9.4049
+              }
+            },
+            {
+              "param": "max_pct_per_market",
+              "old": 0.07,
+              "new": 0.0632,
+              "weight": 0.999,
+              "evidence": {
+                "mean_a": 3.275,
+                "mean_b": -6.1299,
+                "n_a": 531,
+                "n_b": 816,
+                "t": 3.884,
+                "p": 0.0001,
+                "effect": 9.4049
+              }
+            },
+            {
+              "param": "max_single_order",
+              "old": 5.0,
+              "new": 11.7965,
+              "weight": 0.999,
+              "evidence": {
+                "mean_a": 3.275,
+                "mean_b": -6.1299,
+                "n_a": 531,
+                "n_b": 816,
+                "t": 3.884,
+                "p": 0.0001,
+                "effect": 9.4049
+              }
+            }
+          ],
+          "capabilities": [
+            {
+              "param": "use_maker_first",
+              "why": "Resting orders earned +2.14c/contract for challenger while crossing earned -6.13c/contract for incumbent (302/816 contracts, p=0.003). Quoting inside the spread beats paying it, net of adverse selection."
+            }
+          ],
+          "blocked": [],
+          "pooled_knowledge": true
+        },
+        {
+          "learner": "challenger",
+          "teacher": "incumbent",
+          "params": [],
+          "capabilities": [],
+          "blocked": [],
+          "pooled_knowledge": false
+        }
+      ],
+      "params": {
+        "incumbent": {
+          "max_spread_cents": 6.0,
+          "min_net_edge_a": 1.5,
+          "min_net_edge_b": 2.5,
+          "kelly_fraction": 0.22077899751217503,
+          "max_pct_per_market": 0.0632035004146375,
+          "max_single_order": 11.796499585362508,
+          "max_orders_per_cycle": 10.0,
+          "min_volume": 100.0,
+          "min_edge_cents": 2.0,
+          "max_sane_edge_cents": 25.0,
+          "grade_a_threshold": 0.7,
+          "daily_loss_pct": 0.08,
+          "perf_min_sample": 10.0,
+          "perf_mute_roi": -10.0,
+          "use_market_prior": false,
+          "use_calibration": false,
+          "use_exact_fees": false,
+          "use_maker_first": true,
+          "use_exits": false,
+          "use_cluster_caps": false
+        },
+        "challenger": {
+          "max_spread_cents": 6.0,
+          "min_net_edge_cents": 1.2,
+          "edge_sigma_multiple": 0.2,
+          "edge_shrink_ridge": 400.0,
+          "use_tier_shrinkage": false,
+          "kelly_fraction": 0.3,
+          "kelly_uncertainty_z": 1.0,
+          "max_pct_per_market": 0.05,
+          "max_pct_per_cluster": 0.12,
+          "max_gross_exposure_pct": 0.35,
+          "max_single_order": 25.0,
+          "max_orders_per_cycle": 12.0,
+          "cash_reserve_pct": 0.1,
+          "min_volume": 0.0,
+          "disagreement_cap_points": 0.45,
+          "adverse_selection_cents": 1.2,
+          "adverse_volume_scale": 300.0,
+          "maker_min_spread": 2.0,
+          "maker_ttl_ticks": 3.0,
+          "maker_min_ticks_left": 4.0,
+          "maker_adverse_cents": 1.5,
+          "exit_profit_cents": 2.0,
+          "exit_stop_cents": 3.0,
+          "min_ticks_to_open": 2.0,
+          "use_market_prior": true,
+          "use_calibration": true,
+          "use_exact_fees": true,
+          "use_maker_first": true,
+          "use_exits": false,
+          "use_cluster_caps": true
+        }
+      },
+      "divergence": {
+        "incumbent|challenger": 0.3813
+      }
+    },
+    {
+      "round": 1,
+      "scores": {
+        "incumbent": {
+          "bot": "incumbent",
+          "round": 1,
+          "pnl_$": -33.57,
+          "return_%": -3.36,
+          "maxDD_%": 5.29,
+          "sharpe": -0.16,
+          "trades": 72,
+          "contracts": 757,
+          "fees_$": 10.08,
+          "fee_per_ct_c": 1.33,
+          "maker_%": 62.5,
+          "brier": 0.1537,
+          "brier_skill_vs_mkt": -0.0255,
+          "ece": 0.0438,
+          "win_%": 36.1
+        },
+        "challenger": {
+          "bot": "challenger",
+          "round": 1,
+          "pnl_$": 33.62,
+          "return_%": 3.36,
+          "maxDD_%": 8.84,
+          "sharpe": 0.067,
+          "trades": 72,
+          "contracts": 1404,
+          "fees_$": 18.29,
+          "fee_per_ct_c": 1.3,
+          "maker_%": 76.4,
+          "brier": 0.1546,
+          "brier_skill_vs_mkt": -0.0311,
+          "ece": 0.0452,
+          "win_%": 30.6
+        }
+      },
+      "head_to_head": {
+        "challenger_vs_incumbent": {
+          "pnl_delta_$": 67.19,
+          "return_delta_%": 6.72,
+          "brier_delta": -0.0008,
+          "brier_skill_delta": -0.0056,
+          "maxDD_delta_%": -3.5549,
+          "fee_per_ct_delta_c": 0.0289,
+          "trades_delta": 0
+        }
+      },
+      "lessons": [
+        {
+          "kind": "segment",
+          "scope": "0-15c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 0-15c markets (efficient regime) lost -4.66c per contract over 159 contracts (p=0.018). Widen the hurdle here or stop trading it.",
+          "n": 159,
+          "p": 0.017666317335629733,
+          "confidence": 0.6625
+        },
+        {
+          "kind": "segment",
+          "scope": "15-35c|crossing|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 15-35c markets (inefficient regime) lost -23.84c per contract over 69 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 69,
+          "p": 0.0,
+          "confidence": 0.2875
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 65-85c markets (efficient regime) lost -26.24c per contract over 108 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 108,
+          "p": 1.0381612014498387e-08,
+          "confidence": 0.45
+        },
+        {
+          "kind": "segment",
+          "scope": "0-15c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger: resting in 0-15c markets (inefficient regime) lost -11.28c per contract over 152 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 152,
+          "p": 0.0,
+          "confidence": 0.6333333333333333
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent beat challenger by +8.64c per contract when crossing in 35-65c markets (efficient): +0.79c vs -7.85c over 225/122 contracts (p=0.106).",
+          "n": 122,
+          "p": 0.10623830315091043,
+          "confidence": 0.3342487233699302
+        },
+        {
+          "kind": "contrast",
+          "scope": "0-15c|crossing|efficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +12.53c per contract when crossing in 0-15c markets (efficient): +7.86c vs -4.66c over 122/159 contracts (p=0.002).",
+          "n": 122,
+          "p": 0.0023501418537037466,
+          "confidence": 0.7045970260753531
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|resting|efficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +13.22c per contract when resting in 35-65c markets (efficient): +12.27c vs -0.95c over 205/121 contracts (p=0.017).",
+          "n": 121,
+          "p": 0.016809868273324646,
+          "confidence": 0.6503679685863768
+        },
+        {
+          "kind": "capability",
+          "scope": "use_maker_first",
+          "source": "challenger",
+          "statement": "Resting orders earned +3.05c/contract for challenger while crossing earned -5.81c/contract for incumbent (1484/1078 contracts, p=0.000). Quoting inside the spread beats paying it, net of adverse selection.",
+          "n": 1078,
+          "p": 2.0093391217557155e-07,
+          "confidence": 0.9999989953304391
+        },
+        {
+          "kind": "capability",
+          "scope": "use_market_prior",
+          "source": "challenger",
+          "statement": "challenger forecasts better than incumbent: Brier 0.1721 vs 0.1757 over 400/400 resolutions. Skill vs the market price: -0.014 vs -0.035. Blending the price into the estimate, rather than only subtracting it, is what closes that gap.",
+          "n": 400,
+          "p": 0.05,
+          "confidence": 0.2055551812047378
+        },
+        {
+          "kind": "capability",
+          "scope": "use_calibration",
+          "source": "challenger",
+          "statement": "Learning from every resolution, not only from settled trades, gave challenger 400 training examples this run. Its forecasts are better calibrated as a result (Brier 0.1721 vs 0.1757).",
+          "n": 400,
+          "p": 0.01,
+          "confidence": 0.07224023977109584
+        },
+        {
+          "kind": "capability",
+          "scope": "use_exact_fees",
+          "source": "challenger",
+          "statement": "challenger paid 1.26c/contract in fees against 1.34c for incumbent (0.08c cheaper). Modelling the per-order ceiling instead of the smooth per-contract formula changes which trades clear the hurdle, especially on small orders.",
+          "n": 1573,
+          "p": 0.01,
+          "confidence": 0.16303086155094615
+        }
+      ],
+      "transfers": [
+        {
+          "learner": "incumbent",
+          "teacher": "challenger",
+          "params": [
+            {
+              "param": "kelly_fraction",
+              "old": 0.22078,
+              "new": 0.24771,
+              "weight": 1.0,
+              "evidence": {
+                "mean_a": 2.6362,
+                "mean_b": -5.314,
+                "n_a": 1935,
+                "n_b": 1573,
+                "t": 5.487,
+                "p": 0.0,
+                "effect": 7.9502
+              }
+            },
+            {
+              "param": "max_pct_per_market",
+              "old": 0.0632,
+              "new": 0.05871,
+              "weight": 1.0,
+              "evidence": {
+                "mean_a": 2.6362,
+                "mean_b": -5.314,
+                "n_a": 1935,
+                "n_b": 1573,
+                "t": 5.487,
+                "p": 0.0,
+                "effect": 7.9502
+              }
+            },
+            {
+              "param": "max_single_order",
+              "old": 11.7965,
+              "new": 16.28569,
+              "weight": 1.0,
+              "evidence": {
+                "mean_a": 2.6362,
+                "mean_b": -5.314,
+                "n_a": 1935,
+                "n_b": 1573,
+                "t": 5.487,
+                "p": 0.0,
+                "effect": 7.9502
+              }
+            }
+          ],
+          "capabilities": [],
+          "blocked": [],
+          "pooled_knowledge": true
+        },
+        {
+          "learner": "challenger",
+          "teacher": "incumbent",
+          "params": [],
+          "capabilities": [],
+          "blocked": [],
+          "pooled_knowledge": false
+        }
+      ],
+      "params": {
+        "incumbent": {
+          "max_spread_cents": 6.0,
+          "min_net_edge_a": 1.5,
+          "min_net_edge_b": 2.5,
+          "kelly_fraction": 0.24771413286197724,
+          "max_pct_per_market": 0.058714311189670465,
+          "max_single_order": 16.28568881032954,
+          "max_orders_per_cycle": 10.0,
+          "min_volume": 100.0,
+          "min_edge_cents": 2.0,
+          "max_sane_edge_cents": 25.0,
+          "grade_a_threshold": 0.7,
+          "daily_loss_pct": 0.08,
+          "perf_min_sample": 10.0,
+          "perf_mute_roi": -10.0,
+          "use_market_prior": false,
+          "use_calibration": false,
+          "use_exact_fees": false,
+          "use_maker_first": true,
+          "use_exits": false,
+          "use_cluster_caps": false
+        },
+        "challenger": {
+          "max_spread_cents": 6.0,
+          "min_net_edge_cents": 1.2,
+          "edge_sigma_multiple": 0.2,
+          "edge_shrink_ridge": 400.0,
+          "use_tier_shrinkage": false,
+          "kelly_fraction": 0.3,
+          "kelly_uncertainty_z": 1.0,
+          "max_pct_per_market": 0.05,
+          "max_pct_per_cluster": 0.12,
+          "max_gross_exposure_pct": 0.35,
+          "max_single_order": 25.0,
+          "max_orders_per_cycle": 12.0,
+          "cash_reserve_pct": 0.1,
+          "min_volume": 0.0,
+          "disagreement_cap_points": 0.45,
+          "adverse_selection_cents": 1.2,
+          "adverse_volume_scale": 300.0,
+          "maker_min_spread": 2.0,
+          "maker_ttl_ticks": 3.0,
+          "maker_min_ticks_left": 4.0,
+          "maker_adverse_cents": 1.5,
+          "exit_profit_cents": 2.0,
+          "exit_stop_cents": 3.0,
+          "min_ticks_to_open": 2.0,
+          "use_market_prior": true,
+          "use_calibration": true,
+          "use_exact_fees": true,
+          "use_maker_first": true,
+          "use_exits": false,
+          "use_cluster_caps": true
+        }
+      },
+      "divergence": {
+        "incumbent|challenger": 0.3678
+      }
+    },
+    {
+      "round": 2,
+      "scores": {
+        "incumbent": {
+          "bot": "incumbent",
+          "round": 2,
+          "pnl_$": -83.12,
+          "return_%": -8.31,
+          "maxDD_%": 6.4,
+          "sharpe": -0.149,
+          "trades": 64,
+          "contracts": 990,
+          "fees_$": 12.82,
+          "fee_per_ct_c": 1.29,
+          "maker_%": 60.9,
+          "brier": 0.1656,
+          "brier_skill_vs_mkt": -0.0032,
+          "ece": 0.0345,
+          "win_%": 28.1
+        },
+        "challenger": {
+          "bot": "challenger",
+          "round": 2,
+          "pnl_$": 21.04,
+          "return_%": 2.1,
+          "maxDD_%": 5.96,
+          "sharpe": 0.033,
+          "trades": 116,
+          "contracts": 1582,
+          "fees_$": 19.75,
+          "fee_per_ct_c": 1.25,
+          "maker_%": 72.4,
+          "brier": 0.166,
+          "brier_skill_vs_mkt": -0.0059,
+          "ece": 0.0742,
+          "win_%": 26.7
+        }
+      },
+      "head_to_head": {
+        "challenger_vs_incumbent": {
+          "pnl_delta_$": 104.16,
+          "return_delta_%": 10.42,
+          "brier_delta": -0.0004,
+          "brier_skill_delta": -0.0027,
+          "maxDD_delta_%": 0.4387,
+          "fee_per_ct_delta_c": 0.0465,
+          "trades_delta": 52
+        }
+      },
+      "lessons": [
+        {
+          "kind": "segment",
+          "scope": "0-15c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 0-15c markets (efficient regime) lost -5.17c per contract over 223 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 223,
+          "p": 0.00023532727124475628,
+          "confidence": 0.9291666666666667
+        },
+        {
+          "kind": "segment",
+          "scope": "0-15c|resting|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 0-15c markets (efficient regime) lost -7.33c per contract over 102 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 102,
+          "p": 0.0,
+          "confidence": 0.425
+        },
+        {
+          "kind": "segment",
+          "scope": "15-35c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 15-35c markets (efficient regime) lost -5.01c per contract over 342 contracts (p=0.020). Widen the hurdle here or stop trading it.",
+          "n": 342,
+          "p": 0.02010543452474467,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "15-35c|crossing|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 15-35c markets (inefficient regime) lost -24.89c per contract over 85 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 85,
+          "p": 0.0,
+          "confidence": 0.3541666666666667
+        },
+        {
+          "kind": "segment",
+          "scope": "15-35c|resting|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 15-35c markets (efficient regime) lost -11.96c per contract over 277 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 277,
+          "p": 2.8724476131003485e-09,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "15-35c|resting|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 15-35c markets (inefficient regime) lost -18.50c per contract over 103 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 103,
+          "p": 1.965402507408953e-09,
+          "confidence": 0.42916666666666664
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|crossing|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 35-65c markets (inefficient regime) lost -8.91c per contract over 146 contracts (p=0.022). Widen the hurdle here or stop trading it.",
+          "n": 146,
+          "p": 0.022443501193281312,
+          "confidence": 0.6083333333333333
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 65-85c markets (efficient regime) lost -18.68c per contract over 124 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 124,
+          "p": 1.8850334252640266e-05,
+          "confidence": 0.5166666666666667
+        },
+        {
+          "kind": "segment",
+          "scope": "0-15c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger: resting in 0-15c markets (inefficient regime) lost -7.11c per contract over 301 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 301,
+          "p": 1.0843397291182555e-09,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|crossing|efficient",
+          "source": "challenger",
+          "statement": "challenger: crossing in 35-65c markets (efficient regime) lost -10.22c per contract over 258 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 258,
+          "p": 0.00016120391294416336,
+          "confidence": 1.0
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent beat challenger by +8.09c per contract when crossing in 35-65c markets (efficient): -2.13c vs -10.22c over 296/258 contracts (p=0.040).",
+          "n": 258,
+          "p": 0.04005748085752936,
+          "confidence": 0.7997125957123532
+        },
+        {
+          "kind": "contrast",
+          "scope": "0-15c|crossing|efficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +3.85c per contract when crossing in 0-15c markets (efficient): -1.31c vs -5.17c over 237/223 contracts (p=0.111).",
+          "n": 223,
+          "p": 0.11065847705747944,
+          "confidence": 0.4305961736767592
+        },
+        {
+          "kind": "contrast",
+          "scope": "0-15c|resting|efficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +14.50c per contract when resting in 0-15c markets (efficient): +7.17c vs -7.33c over 286/102 contracts (p=0.000).",
+          "n": 102,
+          "p": 8.870948420280911e-11,
+          "confidence": 0.6519202402311073
+        },
+        {
+          "kind": "contrast",
+          "scope": "15-35c|crossing|efficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +7.61c per contract when crossing in 15-35c markets (efficient): +2.60c vs -5.01c over 265/342 contracts (p=0.030).",
+          "n": 265,
+          "p": 0.030494040773559217,
+          "confidence": 0.8475297961322039
+        },
+        {
+          "kind": "contrast",
+          "scope": "15-35c|crossing|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +20.15c per contract when crossing in 15-35c markets (inefficient): -4.74c vs -24.89c over 64/85 contracts (p=0.000).",
+          "n": 64,
+          "p": 0.00017792411497929983,
+          "confidence": 0.5159383814048532
+        },
+        {
+          "kind": "contrast",
+          "scope": "15-35c|resting|efficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +13.62c per contract when resting in 15-35c markets (efficient): +1.67c vs -11.96c over 689/277 contracts (p=0.000).",
+          "n": 277,
+          "p": 2.5078166232539445e-07,
+          "confidence": 0.9999987460916884
+        },
+        {
+          "kind": "contrast",
+          "scope": "15-35c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +20.43c per contract when resting in 15-35c markets (inefficient): +1.93c vs -18.50c over 735/103 contracts (p=0.000).",
+          "n": 103,
+          "p": 8.782059524037322e-09,
+          "confidence": 0.6551081048017917
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|crossing|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +48.07c per contract when crossing in 35-65c markets (inefficient): +39.16c vs -8.91c over 68/146 contracts (p=0.000).",
+          "n": 68,
+          "p": 0.0,
+          "confidence": 0.5322906474223771
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|resting|efficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +7.96c per contract when resting in 35-65c markets (efficient): +5.64c vs -2.33c over 316/297 contracts (p=0.038).",
+          "n": 297,
+          "p": 0.03818712439290506,
+          "confidence": 0.8090643780354747
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +12.66c per contract when resting in 35-65c markets (inefficient): +9.76c vs -2.90c over 250/156 contracts (p=0.014).",
+          "n": 156,
+          "p": 0.01418757238758861,
+          "confidence": 0.7490338421241636
+        },
+        {
+          "kind": "capability",
+          "scope": "use_maker_first",
+          "source": "challenger",
+          "statement": "Resting orders earned +2.85c/contract for challenger while crossing earned -6.43c/contract for incumbent (2599/1444 contracts, p=0.000). Quoting inside the spread beats paying it, net of adverse selection.",
+          "n": 1444,
+          "p": 8.752998326144734e-12,
+          "confidence": 0.999999999956235
+        },
+        {
+          "kind": "capability",
+          "scope": "use_market_prior",
+          "source": "challenger",
+          "statement": "challenger forecasts better than incumbent: Brier 0.1701 vs 0.1723 over 600/600 resolutions. Skill vs the market price: -0.011 vs -0.025. Blending the price into the estimate, rather than only subtracting it, is what closes that gap.",
+          "n": 600,
+          "p": 0.05,
+          "confidence": 0.13124660681517053
+        },
+        {
+          "kind": "capability",
+          "scope": "use_calibration",
+          "source": "challenger",
+          "statement": "Learning from every resolution, not only from settled trades, gave challenger 600 training examples this run. Its forecasts are better calibrated as a result (Brier 0.1701 vs 0.1723).",
+          "n": 600,
+          "p": 0.01,
+          "confidence": 0.04523854080272394
+        },
+        {
+          "kind": "capability",
+          "scope": "use_exact_fees",
+          "source": "challenger",
+          "statement": "challenger paid 1.26c/contract in fees against 1.33c for incumbent (0.07c cheaper). Modelling the per-order ceiling instead of the smooth per-contract formula changes which trades clear the hurdle, especially on small orders.",
+          "n": 2563,
+          "p": 0.01,
+          "confidence": 0.13786268157861192
+        }
+      ],
+      "transfers": [
+        {
+          "learner": "incumbent",
+          "teacher": "challenger",
+          "params": [
+            {
+              "param": "kelly_fraction",
+              "old": 0.24771,
+              "new": 0.26549,
+              "weight": 1.0,
+              "evidence": {
+                "mean_a": 2.0486,
+                "mean_b": -6.5045,
+                "n_a": 3517,
+                "n_b": 2563,
+                "t": 7.967,
+                "p": 0.0,
+                "effect": 8.5531
+              }
+            },
+            {
+              "param": "max_pct_per_market",
+              "old": 0.05871,
+              "new": 0.05575,
+              "weight": 1.0,
+              "evidence": {
+                "mean_a": 2.0486,
+                "mean_b": -6.5045,
+                "n_a": 3517,
+                "n_b": 2563,
+                "t": 7.967,
+                "p": 0.0,
+                "effect": 8.5531
+              }
+            },
+            {
+              "param": "max_single_order",
+              "old": 16.28569,
+              "new": 19.24855,
+              "weight": 1.0,
+              "evidence": {
+                "mean_a": 2.0486,
+                "mean_b": -6.5045,
+                "n_a": 3517,
+                "n_b": 2563,
+                "t": 7.967,
+                "p": 0.0,
+                "effect": 8.5531
+              }
+            }
+          ],
+          "capabilities": [],
+          "blocked": [],
+          "pooled_knowledge": true
+        },
+        {
+          "learner": "challenger",
+          "teacher": "incumbent",
+          "params": [],
+          "capabilities": [],
+          "blocked": [],
+          "pooled_knowledge": false
+        }
+      ],
+      "params": {
+        "incumbent": {
+          "max_spread_cents": 6.0,
+          "min_net_edge_a": 1.5,
+          "min_net_edge_b": 2.5,
+          "kelly_fraction": 0.2654913276889048,
+          "max_pct_per_market": 0.055751445385182535,
+          "max_single_order": 19.24855461481747,
+          "max_orders_per_cycle": 10.0,
+          "min_volume": 100.0,
+          "min_edge_cents": 2.0,
+          "max_sane_edge_cents": 25.0,
+          "grade_a_threshold": 0.7,
+          "daily_loss_pct": 0.08,
+          "perf_min_sample": 10.0,
+          "perf_mute_roi": -10.0,
+          "use_market_prior": false,
+          "use_calibration": false,
+          "use_exact_fees": false,
+          "use_maker_first": true,
+          "use_exits": false,
+          "use_cluster_caps": false
+        },
+        "challenger": {
+          "max_spread_cents": 6.0,
+          "min_net_edge_cents": 1.2,
+          "edge_sigma_multiple": 0.2,
+          "edge_shrink_ridge": 400.0,
+          "use_tier_shrinkage": false,
+          "kelly_fraction": 0.3,
+          "kelly_uncertainty_z": 1.0,
+          "max_pct_per_market": 0.05,
+          "max_pct_per_cluster": 0.12,
+          "max_gross_exposure_pct": 0.35,
+          "max_single_order": 25.0,
+          "max_orders_per_cycle": 12.0,
+          "cash_reserve_pct": 0.1,
+          "min_volume": 0.0,
+          "disagreement_cap_points": 0.45,
+          "adverse_selection_cents": 1.2,
+          "adverse_volume_scale": 300.0,
+          "maker_min_spread": 2.0,
+          "maker_ttl_ticks": 3.0,
+          "maker_min_ticks_left": 4.0,
+          "maker_adverse_cents": 1.5,
+          "exit_profit_cents": 2.0,
+          "exit_stop_cents": 3.0,
+          "min_ticks_to_open": 2.0,
+          "use_market_prior": true,
+          "use_calibration": true,
+          "use_exact_fees": true,
+          "use_maker_first": true,
+          "use_exits": false,
+          "use_cluster_caps": true
+        }
+      },
+      "divergence": {
+        "incumbent|challenger": 0.359
+      }
+    },
+    {
+      "round": 3,
+      "scores": {
+        "incumbent": {
+          "bot": "incumbent",
+          "round": 3,
+          "pnl_$": -82.14,
+          "return_%": -8.21,
+          "maxDD_%": 11.35,
+          "sharpe": -0.227,
+          "trades": 55,
+          "contracts": 983,
+          "fees_$": 13.77,
+          "fee_per_ct_c": 1.4,
+          "maker_%": 74.5,
+          "brier": 0.1749,
+          "brier_skill_vs_mkt": -0.0224,
+          "ece": 0.0549,
+          "win_%": 38.2
+        },
+        "challenger": {
+          "bot": "challenger",
+          "round": 3,
+          "pnl_$": 233.64,
+          "return_%": 23.36,
+          "maxDD_%": 3.49,
+          "sharpe": 0.156,
+          "trades": 95,
+          "contracts": 1618,
+          "fees_$": 20.52,
+          "fee_per_ct_c": 1.27,
+          "maker_%": 72.6,
+          "brier": 0.1748,
+          "brier_skill_vs_mkt": -0.022,
+          "ece": 0.0848,
+          "win_%": 41.1
+        }
+      },
+      "head_to_head": {
+        "challenger_vs_incumbent": {
+          "pnl_delta_$": 315.78,
+          "return_delta_%": 31.58,
+          "brier_delta": 0.0001,
+          "brier_skill_delta": 0.0004,
+          "maxDD_delta_%": 7.8547,
+          "fee_per_ct_delta_c": 0.1326,
+          "trades_delta": 40
+        }
+      },
+      "lessons": [
+        {
+          "kind": "segment",
+          "scope": "0-15c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 0-15c markets (efficient regime) lost -5.82c per contract over 299 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 299,
+          "p": 3.2087164036909144e-08,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "0-15c|resting|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 0-15c markets (efficient regime) lost -7.33c per contract over 102 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 102,
+          "p": 0.0,
+          "confidence": 0.425
+        },
+        {
+          "kind": "segment",
+          "scope": "0-15c|resting|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 0-15c markets (inefficient regime) lost -9.57c per contract over 92 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 92,
+          "p": 0.0,
+          "confidence": 0.38333333333333336
+        },
+        {
+          "kind": "segment",
+          "scope": "15-35c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 15-35c markets (efficient regime) lost -8.05c per contract over 399 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 399,
+          "p": 2.026881320182916e-05,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "15-35c|crossing|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 15-35c markets (inefficient regime) lost -20.43c per contract over 89 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 89,
+          "p": 0.0,
+          "confidence": 0.37083333333333335
+        },
+        {
+          "kind": "segment",
+          "scope": "15-35c|resting|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 15-35c markets (efficient regime) lost -11.15c per contract over 372 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 372,
+          "p": 5.154316973232653e-10,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "15-35c|resting|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 15-35c markets (inefficient regime) lost -22.43c per contract over 217 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 217,
+          "p": 0.0,
+          "confidence": 0.9041666666666667
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|crossing|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 35-65c markets (inefficient regime) lost -13.27c per contract over 165 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 165,
+          "p": 0.00020997903074015944,
+          "confidence": 0.6875
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|resting|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 35-65c markets (efficient regime) lost -7.36c per contract over 582 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 582,
+          "p": 0.000361486274008449,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 65-85c markets (efficient regime) lost -18.68c per contract over 124 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 124,
+          "p": 1.8850334252640266e-05,
+          "confidence": 0.5166666666666667
+        },
+        {
+          "kind": "segment",
+          "scope": "0-15c|crossing|efficient",
+          "source": "challenger",
+          "statement": "challenger: crossing in 0-15c markets (efficient regime) lost -3.75c per contract over 313 contracts (p=0.013). Widen the hurdle here or stop trading it.",
+          "n": 313,
+          "p": 0.012889504936935747,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|crossing|efficient",
+          "source": "challenger",
+          "statement": "challenger: crossing in 35-65c markets (efficient regime) lost -11.79c per contract over 308 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 308,
+          "p": 2.850678816557206e-06,
+          "confidence": 1.0
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent beat challenger by +7.38c per contract when crossing in 35-65c markets (efficient): -4.41c vs -11.79c over 323/308 contracts (p=0.048).",
+          "n": 308,
+          "p": 0.04761089714933986,
+          "confidence": 0.7619455142533007
+        },
+        {
+          "kind": "contrast",
+          "scope": "0-15c|resting|efficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +19.42c per contract when resting in 0-15c markets (efficient): +12.09c vs -7.33c over 332/102 contracts (p=0.000).",
+          "n": 102,
+          "p": 0.0,
+          "confidence": 0.6519202405202649
+        },
+        {
+          "kind": "contrast",
+          "scope": "0-15c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +11.49c per contract when resting in 0-15c markets (inefficient): +1.93c vs -9.57c over 489/92 contracts (p=0.000).",
+          "n": 92,
+          "p": 4.6629367034256575e-15,
+          "confidence": 0.6191391873668759
+        },
+        {
+          "kind": "contrast",
+          "scope": "15-35c|crossing|efficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +6.56c per contract when crossing in 15-35c markets (efficient): -1.49c vs -8.05c over 382/399 contracts (p=0.021).",
+          "n": 382,
+          "p": 0.021376904334113878,
+          "confidence": 0.8931154783294306
+        },
+        {
+          "kind": "contrast",
+          "scope": "15-35c|crossing|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +29.13c per contract when crossing in 15-35c markets (inefficient): +8.71c vs -20.43c over 162/89 contracts (p=0.000).",
+          "n": 89,
+          "p": 3.0331293032759277e-11,
+          "confidence": 0.6089608634558175
+        },
+        {
+          "kind": "contrast",
+          "scope": "15-35c|resting|efficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +14.06c per contract when resting in 15-35c markets (efficient): +2.92c vs -11.15c over 878/372 contracts (p=0.000).",
+          "n": 372,
+          "p": 2.457057668436846e-09,
+          "confidence": 0.9999999877147117
+        },
+        {
+          "kind": "contrast",
+          "scope": "15-35c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +29.67c per contract when resting in 15-35c markets (inefficient): +7.23c vs -22.43c over 1141/217 contracts (p=0.000).",
+          "n": 217,
+          "p": 0.0,
+          "confidence": 0.9508767883730608
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|crossing|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +33.08c per contract when crossing in 35-65c markets (inefficient): +19.81c vs -13.27c over 131/165 contracts (p=0.000).",
+          "n": 131,
+          "p": 1.7589836254217062e-09,
+          "confidence": 0.7388053354789842
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|resting|efficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +14.17c per contract when resting in 35-65c markets (efficient): +6.81c vs -7.36c over 422/582 contracts (p=0.000).",
+          "n": 422,
+          "p": 4.127079837878966e-06,
+          "confidence": 0.9999793646008106
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +16.85c per contract when resting in 35-65c markets (inefficient): +24.20c vs +7.36c over 504/289 contracts (p=0.000).",
+          "n": 289,
+          "p": 2.6369403713921713e-06,
+          "confidence": 0.999986815298143
+        },
+        {
+          "kind": "capability",
+          "scope": "use_maker_first",
+          "source": "challenger",
+          "statement": "Resting orders earned +8.45c/contract for challenger while crossing earned -7.60c/contract for incumbent (3813/1648 contracts, p=0.000). Quoting inside the spread beats paying it, net of adverse selection.",
+          "n": 1648,
+          "p": 0.0,
+          "confidence": 1.0
+        },
+        {
+          "kind": "capability",
+          "scope": "use_calibration",
+          "source": "challenger",
+          "statement": "Learning from every resolution, not only from settled trades, gave challenger 800 training examples this run. Its forecasts are better calibrated as a result (Brier 0.1713 vs 0.1730).",
+          "n": 800,
+          "p": 0.01,
+          "confidence": 0.03426817416488315
+        },
+        {
+          "kind": "capability",
+          "scope": "use_exact_fees",
+          "source": "challenger",
+          "statement": "challenger paid 1.26c/contract in fees against 1.35c for incumbent (0.09c cheaper). Modelling the per-order ceiling instead of the smooth per-contract formula changes which trades clear the hurdle, especially on small orders.",
+          "n": 3546,
+          "p": 0.01,
+          "confidence": 0.17226085757859844
+        }
+      ],
+      "transfers": [
+        {
+          "learner": "incumbent",
+          "teacher": "challenger",
+          "params": [
+            {
+              "param": "kelly_fraction",
+              "old": 0.26549,
+              "new": 0.27722,
+              "weight": 1.0,
+              "evidence": {
+                "mean_a": 5.9531,
+                "mean_b": -7.0178,
+                "n_a": 5135,
+                "n_b": 3546,
+                "t": 14.158,
+                "p": 0.0,
+                "effect": 12.9708
+              }
+            },
+            {
+              "param": "max_pct_per_market",
+              "old": 0.05575,
+              "new": 0.0538,
+              "weight": 1.0,
+              "evidence": {
+                "mean_a": 5.9531,
+                "mean_b": -7.0178,
+                "n_a": 5135,
+                "n_b": 3546,
+                "t": 14.158,
+                "p": 0.0,
+                "effect": 12.9708
+              }
+            },
+            {
+              "param": "max_single_order",
+              "old": 19.24855,
+              "new": 21.20405,
+              "weight": 1.0,
+              "evidence": {
+                "mean_a": 5.9531,
+                "mean_b": -7.0178,
+                "n_a": 5135,
+                "n_b": 3546,
+                "t": 14.158,
+                "p": 0.0,
+                "effect": 12.9708
+              }
+            }
+          ],
+          "capabilities": [],
+          "blocked": [],
+          "pooled_knowledge": true
+        },
+        {
+          "learner": "challenger",
+          "teacher": "incumbent",
+          "params": [],
+          "capabilities": [],
+          "blocked": [],
+          "pooled_knowledge": false
+        }
+      ],
+      "params": {
+        "incumbent": {
+          "max_spread_cents": 6.0,
+          "min_net_edge_a": 1.5,
+          "min_net_edge_b": 2.5,
+          "kelly_fraction": 0.27722427627467716,
+          "max_pct_per_market": 0.053795953954220474,
+          "max_single_order": 21.204046045779528,
+          "max_orders_per_cycle": 10.0,
+          "min_volume": 100.0,
+          "min_edge_cents": 2.0,
+          "max_sane_edge_cents": 25.0,
+          "grade_a_threshold": 0.7,
+          "daily_loss_pct": 0.08,
+          "perf_min_sample": 10.0,
+          "perf_mute_roi": -10.0,
+          "use_market_prior": false,
+          "use_calibration": false,
+          "use_exact_fees": false,
+          "use_maker_first": true,
+          "use_exits": false,
+          "use_cluster_caps": false
+        },
+        "challenger": {
+          "max_spread_cents": 6.0,
+          "min_net_edge_cents": 1.2,
+          "edge_sigma_multiple": 0.2,
+          "edge_shrink_ridge": 400.0,
+          "use_tier_shrinkage": false,
+          "kelly_fraction": 0.3,
+          "kelly_uncertainty_z": 1.0,
+          "max_pct_per_market": 0.05,
+          "max_pct_per_cluster": 0.12,
+          "max_gross_exposure_pct": 0.35,
+          "max_single_order": 25.0,
+          "max_orders_per_cycle": 12.0,
+          "cash_reserve_pct": 0.1,
+          "min_volume": 0.0,
+          "disagreement_cap_points": 0.45,
+          "adverse_selection_cents": 1.2,
+          "adverse_volume_scale": 300.0,
+          "maker_min_spread": 2.0,
+          "maker_ttl_ticks": 3.0,
+          "maker_min_ticks_left": 4.0,
+          "maker_adverse_cents": 1.5,
+          "exit_profit_cents": 2.0,
+          "exit_stop_cents": 3.0,
+          "min_ticks_to_open": 2.0,
+          "use_market_prior": true,
+          "use_calibration": true,
+          "use_exact_fees": true,
+          "use_maker_first": true,
+          "use_exits": false,
+          "use_cluster_caps": true
+        }
+      },
+      "divergence": {
+        "incumbent|challenger": 0.3531
+      }
+    },
+    {
+      "round": 4,
+      "scores": {
+        "incumbent": {
+          "bot": "incumbent",
+          "round": 4,
+          "pnl_$": -55.37,
+          "return_%": -5.54,
+          "maxDD_%": 7.68,
+          "sharpe": -0.084,
+          "trades": 59,
+          "contracts": 1099,
+          "fees_$": 14.04,
+          "fee_per_ct_c": 1.28,
+          "maker_%": 62.7,
+          "brier": 0.1695,
+          "brier_skill_vs_mkt": -0.0064,
+          "ece": 0.0621,
+          "win_%": 42.4
+        },
+        "challenger": {
+          "bot": "challenger",
+          "round": 4,
+          "pnl_$": 172.08,
+          "return_%": 17.21,
+          "maxDD_%": 9.27,
+          "sharpe": 0.089,
+          "trades": 93,
+          "contracts": 1760,
+          "fees_$": 22.31,
+          "fee_per_ct_c": 1.27,
+          "maker_%": 73.1,
+          "brier": 0.1735,
+          "brier_skill_vs_mkt": -0.0299,
+          "ece": 0.0826,
+          "win_%": 39.8
+        }
+      },
+      "head_to_head": {
+        "challenger_vs_incumbent": {
+          "pnl_delta_$": 227.45,
+          "return_delta_%": 22.74,
+          "brier_delta": -0.004,
+          "brier_skill_delta": -0.0236,
+          "maxDD_delta_%": -1.5866,
+          "fee_per_ct_delta_c": 0.0099,
+          "trades_delta": 34
+        }
+      },
+      "lessons": [
+        {
+          "kind": "segment",
+          "scope": "0-15c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 0-15c markets (efficient regime) lost -6.57c per contract over 356 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 356,
+          "p": 1.4832579608992091e-13,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "0-15c|resting|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 0-15c markets (inefficient regime) lost -10.28c per contract over 155 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 155,
+          "p": 0.0,
+          "confidence": 0.6458333333333334
+        },
+        {
+          "kind": "segment",
+          "scope": "15-35c|resting|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 15-35c markets (efficient regime) lost -10.08c per contract over 477 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 477,
+          "p": 4.778093476431877e-10,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "15-35c|resting|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 15-35c markets (inefficient regime) lost -14.36c per contract over 259 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 259,
+          "p": 6.527978158032965e-11,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 35-65c markets (efficient regime) lost -8.53c per contract over 356 contracts (p=0.001). Widen the hurdle here or stop trading it.",
+          "n": 356,
+          "p": 0.0009711441923561104,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|crossing|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 35-65c markets (inefficient regime) lost -18.96c per contract over 186 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 186,
+          "p": 2.1121743465357667e-08,
+          "confidence": 0.775
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|resting|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 35-65c markets (efficient regime) lost -12.08c per contract over 813 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 813,
+          "p": 8.020251129892131e-13,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 65-85c markets (efficient regime) lost -21.46c per contract over 167 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 167,
+          "p": 1.8869814155664244e-08,
+          "confidence": 0.6958333333333333
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|resting|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 65-85c markets (efficient regime) lost -7.39c per contract over 280 contracts (p=0.010). Widen the hurdle here or stop trading it.",
+          "n": 280,
+          "p": 0.010166218155150508,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|resting|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 65-85c markets (inefficient regime) lost -14.11c per contract over 88 contracts (p=0.007). Widen the hurdle here or stop trading it.",
+          "n": 88,
+          "p": 0.0074137902288442525,
+          "confidence": 0.36666666666666664
+        },
+        {
+          "kind": "segment",
+          "scope": "0-15c|crossing|efficient",
+          "source": "challenger",
+          "statement": "challenger: crossing in 0-15c markets (efficient regime) lost -5.34c per contract over 378 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 378,
+          "p": 2.375103495366737e-05,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "15-35c|resting|efficient",
+          "source": "challenger",
+          "statement": "challenger: resting in 15-35c markets (efficient regime) lost -2.92c per contract over 1140 contracts (p=0.017). Widen the hurdle here or stop trading it.",
+          "n": 1140,
+          "p": 0.016766946226283608,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|crossing|efficient",
+          "source": "challenger",
+          "statement": "challenger: crossing in 35-65c markets (efficient regime) lost -10.26c per contract over 363 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 363,
+          "p": 2.092494675776102e-05,
+          "confidence": 1.0
+        },
+        {
+          "kind": "contrast",
+          "scope": "0-15c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +16.93c per contract when resting in 0-15c markets (inefficient): +6.65c vs -10.28c over 766/155 contracts (p=0.000).",
+          "n": 155,
+          "p": 0.0,
+          "confidence": 0.8036375634160796
+        },
+        {
+          "kind": "contrast",
+          "scope": "15-35c|crossing|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +23.61c per contract when crossing in 15-35c markets (inefficient): +20.44c vs -3.17c over 232/109 contracts (p=0.000).",
+          "n": 109,
+          "p": 4.493309630593245e-06,
+          "confidence": 0.6739037466740582
+        },
+        {
+          "kind": "contrast",
+          "scope": "15-35c|resting|efficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +7.16c per contract when resting in 15-35c markets (efficient): -2.92c vs -10.08c over 1140/477 contracts (p=0.000).",
+          "n": 477,
+          "p": 0.0004157560792594772,
+          "confidence": 0.9979212196037026
+        },
+        {
+          "kind": "contrast",
+          "scope": "15-35c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +27.45c per contract when resting in 15-35c markets (inefficient): +13.08c vs -14.36c over 1404/259 contracts (p=0.000).",
+          "n": 259,
+          "p": 0.0,
+          "confidence": 1.0
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|crossing|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +43.16c per contract when crossing in 35-65c markets (inefficient): +24.20c vs -18.96c over 149/186 contracts (p=0.000).",
+          "n": 149,
+          "p": 0.0,
+          "confidence": 0.7879297769048542
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|resting|efficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +19.24c per contract when resting in 35-65c markets (efficient): +7.16c vs -12.08c over 578/813 contracts (p=0.000).",
+          "n": 578,
+          "p": 1.1302070390684094e-13,
+          "confidence": 0.9999999999994349
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +13.44c per contract when resting in 35-65c markets (inefficient): +23.23c vs +9.79c over 744/352 contracts (p=0.000).",
+          "n": 352,
+          "p": 1.5577668948330015e-05,
+          "confidence": 0.9999221116552583
+        },
+        {
+          "kind": "contrast",
+          "scope": "65-85c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +44.26c per contract when resting in 65-85c markets (inefficient): +30.14c vs -14.11c over 98/88 contracts (p=0.000).",
+          "n": 88,
+          "p": 0.0,
+          "confidence": 0.6055300708194983
+        },
+        {
+          "kind": "capability",
+          "scope": "use_maker_first",
+          "source": "challenger",
+          "statement": "Resting orders earned +8.97c/contract for challenger while crossing earned -6.70c/contract for incumbent (5183/1970 contracts, p=0.000). Quoting inside the spread beats paying it, net of adverse selection.",
+          "n": 1970,
+          "p": 0.0,
+          "confidence": 1.0
+        },
+        {
+          "kind": "capability",
+          "scope": "use_calibration",
+          "source": "challenger",
+          "statement": "Learning from every resolution, not only from settled trades, gave challenger 1000 training examples this run. Its forecasts are better calibrated as a result (Brier 0.1717 vs 0.1723).",
+          "n": 1000,
+          "p": 0.01,
+          "confidence": 0.01154202714443997
+        },
+        {
+          "kind": "capability",
+          "scope": "use_exact_fees",
+          "source": "challenger",
+          "statement": "challenger paid 1.26c/contract in fees against 1.33c for incumbent (0.07c cheaper). Modelling the per-order ceiling instead of the smooth per-contract formula changes which trades clear the hurdle, especially on small orders.",
+          "n": 4645,
+          "p": 0.01,
+          "confidence": 0.135916652290899
+        }
+      ],
+      "transfers": [
+        {
+          "learner": "incumbent",
+          "teacher": "challenger",
+          "params": [
+            {
+              "param": "kelly_fraction",
+              "old": 0.27722,
+              "new": 0.28497,
+              "weight": 1.0,
+              "evidence": {
+                "mean_a": 6.9292,
+                "mean_b": -6.5494,
+                "n_a": 6895,
+                "n_b": 4645,
+                "t": 16.478,
+                "p": 0.0,
+                "effect": 13.4786
+              }
+            },
+            {
+              "param": "max_pct_per_market",
+              "old": 0.0538,
+              "new": 0.05251,
+              "weight": 1.0,
+              "evidence": {
+                "mean_a": 6.9292,
+                "mean_b": -6.5494,
+                "n_a": 6895,
+                "n_b": 4645,
+                "t": 16.478,
+                "p": 0.0,
+                "effect": 13.4786
+              }
+            },
+            {
+              "param": "max_single_order",
+              "old": 21.20405,
+              "new": 22.49467,
+              "weight": 1.0,
+              "evidence": {
+                "mean_a": 6.9292,
+                "mean_b": -6.5494,
+                "n_a": 6895,
+                "n_b": 4645,
+                "t": 16.478,
+                "p": 0.0,
+                "effect": 13.4786
+              }
+            }
+          ],
+          "capabilities": [],
+          "blocked": [],
+          "pooled_knowledge": true
+        },
+        {
+          "learner": "challenger",
+          "teacher": "incumbent",
+          "params": [],
+          "capabilities": [],
+          "blocked": [],
+          "pooled_knowledge": false
+        }
+      ],
+      "params": {
+        "incumbent": {
+          "max_spread_cents": 6.0,
+          "min_net_edge_a": 1.5,
+          "min_net_edge_b": 2.5,
+          "kelly_fraction": 0.28496802234128693,
+          "max_pct_per_market": 0.05250532960978552,
+          "max_single_order": 22.494670390214488,
+          "max_orders_per_cycle": 10.0,
+          "min_volume": 100.0,
+          "min_edge_cents": 2.0,
+          "max_sane_edge_cents": 25.0,
+          "grade_a_threshold": 0.7,
+          "daily_loss_pct": 0.08,
+          "perf_min_sample": 10.0,
+          "perf_mute_roi": -10.0,
+          "use_market_prior": false,
+          "use_calibration": false,
+          "use_exact_fees": false,
+          "use_maker_first": true,
+          "use_exits": false,
+          "use_cluster_caps": false
+        },
+        "challenger": {
+          "max_spread_cents": 6.0,
+          "min_net_edge_cents": 1.2,
+          "edge_sigma_multiple": 0.2,
+          "edge_shrink_ridge": 400.0,
+          "use_tier_shrinkage": false,
+          "kelly_fraction": 0.3,
+          "kelly_uncertainty_z": 1.0,
+          "max_pct_per_market": 0.05,
+          "max_pct_per_cluster": 0.12,
+          "max_gross_exposure_pct": 0.35,
+          "max_single_order": 25.0,
+          "max_orders_per_cycle": 12.0,
+          "cash_reserve_pct": 0.1,
+          "min_volume": 0.0,
+          "disagreement_cap_points": 0.45,
+          "adverse_selection_cents": 1.2,
+          "adverse_volume_scale": 300.0,
+          "maker_min_spread": 2.0,
+          "maker_ttl_ticks": 3.0,
+          "maker_min_ticks_left": 4.0,
+          "maker_adverse_cents": 1.5,
+          "exit_profit_cents": 2.0,
+          "exit_stop_cents": 3.0,
+          "min_ticks_to_open": 2.0,
+          "use_market_prior": true,
+          "use_calibration": true,
+          "use_exact_fees": true,
+          "use_maker_first": true,
+          "use_exits": false,
+          "use_cluster_caps": true
+        }
+      },
+      "divergence": {
+        "incumbent|challenger": 0.3493
+      }
+    },
+    {
+      "round": 5,
+      "scores": {
+        "incumbent": {
+          "bot": "incumbent",
+          "round": 5,
+          "pnl_$": 83.99,
+          "return_%": 8.4,
+          "maxDD_%": 3.02,
+          "sharpe": 0.225,
+          "trades": 63,
+          "contracts": 1260,
+          "fees_$": 16.57,
+          "fee_per_ct_c": 1.32,
+          "maker_%": 60.3,
+          "brier": 0.1843,
+          "brier_skill_vs_mkt": -0.0043,
+          "ece": 0.069,
+          "win_%": 50.8
+        },
+        "challenger": {
+          "bot": "challenger",
+          "round": 5,
+          "pnl_$": 88.92,
+          "return_%": 8.89,
+          "maxDD_%": 4.78,
+          "sharpe": 0.151,
+          "trades": 113,
+          "contracts": 2277,
+          "fees_$": 31.14,
+          "fee_per_ct_c": 1.37,
+          "maker_%": 63.7,
+          "brier": 0.1858,
+          "brier_skill_vs_mkt": -0.0126,
+          "ece": 0.0932,
+          "win_%": 37.2
+        }
+      },
+      "head_to_head": {
+        "challenger_vs_incumbent": {
+          "pnl_delta_$": 4.93,
+          "return_delta_%": 0.49,
+          "brier_delta": -0.0015,
+          "brier_skill_delta": -0.0084,
+          "maxDD_delta_%": -1.7525,
+          "fee_per_ct_delta_c": -0.0525,
+          "trades_delta": 50
+        }
+      },
+      "lessons": [
+        {
+          "kind": "segment",
+          "scope": "0-15c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 0-15c markets (efficient regime) lost -6.34c per contract over 420 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 420,
+          "p": 0.0,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "0-15c|resting|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 0-15c markets (inefficient regime) lost -10.46c per contract over 177 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 177,
+          "p": 0.0,
+          "confidence": 0.7375
+        },
+        {
+          "kind": "segment",
+          "scope": "15-35c|resting|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 15-35c markets (inefficient regime) lost -11.21c per contract over 325 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 325,
+          "p": 3.4618296451682795e-07,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|crossing|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 35-65c markets (inefficient regime) lost -20.90c per contract over 197 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 197,
+          "p": 1.180606723494293e-10,
+          "confidence": 0.8208333333333333
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|resting|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 35-65c markets (efficient regime) lost -11.77c per contract over 1055 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 1055,
+          "p": 3.9968028886505635e-15,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 65-85c markets (efficient regime) lost -26.72c per contract over 189 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 189,
+          "p": 3.9745984281580604e-14,
+          "confidence": 0.7875
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|resting|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 65-85c markets (inefficient regime) lost -15.92c per contract over 132 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 132,
+          "p": 0.00017397185391176961,
+          "confidence": 0.55
+        },
+        {
+          "kind": "segment",
+          "scope": "0-15c|crossing|efficient",
+          "source": "challenger",
+          "statement": "challenger: crossing in 0-15c markets (efficient regime) lost -6.20c per contract over 430 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 430,
+          "p": 2.8669695728567035e-08,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "15-35c|crossing|efficient",
+          "source": "challenger",
+          "statement": "challenger: crossing in 15-35c markets (efficient regime) lost -3.62c per contract over 702 contracts (p=0.020). Widen the hurdle here or stop trading it.",
+          "n": 702,
+          "p": 0.019840625298241488,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|crossing|efficient",
+          "source": "challenger",
+          "statement": "challenger: crossing in 35-65c markets (efficient regime) lost -11.13c per contract over 490 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 490,
+          "p": 5.2204527145605084e-08,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|resting|efficient",
+          "source": "challenger",
+          "statement": "challenger: resting in 35-65c markets (efficient regime) lost -4.45c per contract over 931 contracts (p=0.004). Widen the hurdle here or stop trading it.",
+          "n": 931,
+          "p": 0.004450202726137054,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|resting|efficient",
+          "source": "challenger",
+          "statement": "challenger: resting in 65-85c markets (efficient regime) lost -25.63c per contract over 96 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 96,
+          "p": 1.1577679348562242e-07,
+          "confidence": 0.4
+        },
+        {
+          "kind": "contrast",
+          "scope": "15-35c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent beat challenger by +5.38c per contract when crossing in 15-35c markets (efficient): +1.76c vs -3.62c over 641/702 contracts (p=0.021).",
+          "n": 641,
+          "p": 0.020981056348776228,
+          "confidence": 0.8950947182561189
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent beat challenger by +8.79c per contract when crossing in 35-65c markets (efficient): -2.34c vs -11.13c over 403/490 contracts (p=0.006).",
+          "n": 403,
+          "p": 0.006089572417356637,
+          "confidence": 0.9695521379132168
+        },
+        {
+          "kind": "contrast",
+          "scope": "65-85c|resting|efficient",
+          "source": "incumbent",
+          "statement": "incumbent beat challenger by +22.40c per contract when resting in 65-85c markets (efficient): -3.23c vs -25.63c over 324/96 contracts (p=0.000).",
+          "n": 96,
+          "p": 4.2119380541105755e-05,
+          "confidence": 0.6323223388575306
+        },
+        {
+          "kind": "contrast",
+          "scope": "0-15c|crossing|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +9.70c per contract when crossing in 0-15c markets (inefficient): +15.48c vs +5.77c over 88/75 contracts (p=0.118).",
+          "n": 75,
+          "p": 0.11792709980836502,
+          "confidence": 0.22940072992381422
+        },
+        {
+          "kind": "contrast",
+          "scope": "0-15c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +17.62c per contract when resting in 0-15c markets (inefficient): +7.15c vs -10.46c over 891/177 contracts (p=0.000).",
+          "n": 177,
+          "p": 0.0,
+          "confidence": 0.8587782018658834
+        },
+        {
+          "kind": "contrast",
+          "scope": "15-35c|crossing|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +17.69c per contract when crossing in 15-35c markets (inefficient): +22.98c vs +5.29c over 287/153 contracts (p=0.000).",
+          "n": 153,
+          "p": 0.00017117742049554963,
+          "confidence": 0.7977526000837181
+        },
+        {
+          "kind": "contrast",
+          "scope": "15-35c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +24.48c per contract when resting in 15-35c markets (inefficient): +13.27c vs -11.21c over 1827/325 contracts (p=0.000).",
+          "n": 325,
+          "p": 0.0,
+          "confidence": 1.0
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|crossing|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +48.19c per contract when crossing in 35-65c markets (inefficient): +27.28c vs -20.90c over 254/197 contracts (p=0.000).",
+          "n": 197,
+          "p": 0.0,
+          "confidence": 0.9059985283284588
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|resting|efficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +7.32c per contract when resting in 35-65c markets (efficient): -4.45c vs -11.77c over 931/1055 contracts (p=0.001).",
+          "n": 931,
+          "p": 0.0007303214039473538,
+          "confidence": 0.9963483929802632
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +11.37c per contract when resting in 35-65c markets (inefficient): +20.51c vs +9.14c over 992/462 contracts (p=0.000).",
+          "n": 462,
+          "p": 1.7511184454033213e-05,
+          "confidence": 0.9999124440777298
+        },
+        {
+          "kind": "contrast",
+          "scope": "65-85c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +46.07c per contract when resting in 65-85c markets (inefficient): +30.14c vs -15.92c over 98/132 contracts (p=0.000).",
+          "n": 98,
+          "p": 0.0,
+          "confidence": 0.6390096504226938
+        },
+        {
+          "kind": "capability",
+          "scope": "use_maker_first",
+          "source": "challenger",
+          "statement": "Resting orders earned +7.72c/contract for challenger while crossing earned -3.93c/contract for incumbent (6835/2394 contracts, p=0.000). Quoting inside the spread beats paying it, net of adverse selection.",
+          "n": 2394,
+          "p": 0.0,
+          "confidence": 1.0
+        },
+        {
+          "kind": "capability",
+          "scope": "use_calibration",
+          "source": "challenger",
+          "statement": "Learning from every resolution, not only from settled trades, gave challenger 1200 training examples this run. Its forecasts are better calibrated as a result (Brier 0.1741 vs 0.1743).",
+          "n": 1200,
+          "p": 0.01,
+          "confidence": 0.004484931338937237
+        }
+      ],
+      "transfers": [
+        {
+          "learner": "incumbent",
+          "teacher": "challenger",
+          "params": [
+            {
+              "param": "kelly_fraction",
+              "old": 0.28497,
+              "new": 0.29008,
+              "weight": 1.0,
+              "evidence": {
+                "mean_a": 6.1785,
+                "mean_b": -3.7296,
+                "n_a": 9172,
+                "n_b": 5905,
+                "t": 13.565,
+                "p": 0.0,
+                "effect": 9.908
+              }
+            },
+            {
+              "param": "max_pct_per_market",
+              "old": 0.05251,
+              "new": 0.05165,
+              "weight": 1.0,
+              "evidence": {
+                "mean_a": 6.1785,
+                "mean_b": -3.7296,
+                "n_a": 9172,
+                "n_b": 5905,
+                "t": 13.565,
+                "p": 0.0,
+                "effect": 9.908
+              }
+            },
+            {
+              "param": "max_single_order",
+              "old": 22.49467,
+              "new": 23.34648,
+              "weight": 1.0,
+              "evidence": {
+                "mean_a": 6.1785,
+                "mean_b": -3.7296,
+                "n_a": 9172,
+                "n_b": 5905,
+                "t": 13.565,
+                "p": 0.0,
+                "effect": 9.908
+              }
+            }
+          ],
+          "capabilities": [],
+          "blocked": [],
+          "pooled_knowledge": true
+        },
+        {
+          "learner": "challenger",
+          "teacher": "incumbent",
+          "params": [],
+          "capabilities": [],
+          "blocked": [],
+          "pooled_knowledge": false
+        }
+      ],
+      "params": {
+        "incumbent": {
+          "max_spread_cents": 6.0,
+          "min_net_edge_a": 1.5,
+          "min_net_edge_b": 2.5,
+          "kelly_fraction": 0.2900788947452494,
+          "max_pct_per_market": 0.05165351754245844,
+          "max_single_order": 23.346482457541562,
+          "max_orders_per_cycle": 10.0,
+          "min_volume": 100.0,
+          "min_edge_cents": 2.0,
+          "max_sane_edge_cents": 25.0,
+          "grade_a_threshold": 0.7,
+          "daily_loss_pct": 0.08,
+          "perf_min_sample": 10.0,
+          "perf_mute_roi": -10.0,
+          "use_market_prior": false,
+          "use_calibration": false,
+          "use_exact_fees": false,
+          "use_maker_first": true,
+          "use_exits": false,
+          "use_cluster_caps": false
+        },
+        "challenger": {
+          "max_spread_cents": 6.0,
+          "min_net_edge_cents": 1.2,
+          "edge_sigma_multiple": 0.2,
+          "edge_shrink_ridge": 400.0,
+          "use_tier_shrinkage": false,
+          "kelly_fraction": 0.3,
+          "kelly_uncertainty_z": 1.0,
+          "max_pct_per_market": 0.05,
+          "max_pct_per_cluster": 0.12,
+          "max_gross_exposure_pct": 0.35,
+          "max_single_order": 25.0,
+          "max_orders_per_cycle": 12.0,
+          "cash_reserve_pct": 0.1,
+          "min_volume": 0.0,
+          "disagreement_cap_points": 0.45,
+          "adverse_selection_cents": 1.2,
+          "adverse_volume_scale": 300.0,
+          "maker_min_spread": 2.0,
+          "maker_ttl_ticks": 3.0,
+          "maker_min_ticks_left": 4.0,
+          "maker_adverse_cents": 1.5,
+          "exit_profit_cents": 2.0,
+          "exit_stop_cents": 3.0,
+          "min_ticks_to_open": 2.0,
+          "use_market_prior": true,
+          "use_calibration": true,
+          "use_exact_fees": true,
+          "use_maker_first": true,
+          "use_exits": false,
+          "use_cluster_caps": true
+        }
+      },
+      "divergence": {
+        "incumbent|challenger": 0.3467
+      }
+    },
+    {
+      "round": 6,
+      "scores": {
+        "incumbent": {
+          "bot": "incumbent",
+          "round": 6,
+          "pnl_$": 65.31,
+          "return_%": 6.53,
+          "maxDD_%": 2.8,
+          "sharpe": 0.22,
+          "trades": 61,
+          "contracts": 1371,
+          "fees_$": 17.58,
+          "fee_per_ct_c": 1.28,
+          "maker_%": 62.3,
+          "brier": 0.2208,
+          "brier_skill_vs_mkt": -0.006,
+          "ece": 0.105,
+          "win_%": 45.9
+        },
+        "challenger": {
+          "bot": "challenger",
+          "round": 6,
+          "pnl_$": 379.65,
+          "return_%": 37.97,
+          "maxDD_%": 8.77,
+          "sharpe": 0.249,
+          "trades": 101,
+          "contracts": 2193,
+          "fees_$": 28.9,
+          "fee_per_ct_c": 1.32,
+          "maker_%": 60.4,
+          "brier": 0.2206,
+          "brier_skill_vs_mkt": -0.0052,
+          "ece": 0.1083,
+          "win_%": 47.5
+        }
+      },
+      "head_to_head": {
+        "challenger_vs_incumbent": {
+          "pnl_delta_$": 314.34,
+          "return_delta_%": 31.43,
+          "brier_delta": 0.0002,
+          "brier_skill_delta": 0.0008,
+          "maxDD_delta_%": -5.9699,
+          "fee_per_ct_delta_c": -0.0356,
+          "trades_delta": 40
+        }
+      },
+      "lessons": [
+        {
+          "kind": "segment",
+          "scope": "0-15c|resting|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 0-15c markets (inefficient regime) lost -10.85c per contract over 200 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 200,
+          "p": 0.0,
+          "confidence": 0.8333333333333334
+        },
+        {
+          "kind": "segment",
+          "scope": "15-35c|resting|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 15-35c markets (inefficient regime) lost -4.69c per contract over 463 contracts (p=0.019). Widen the hurdle here or stop trading it.",
+          "n": 463,
+          "p": 0.019164097007342118,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|crossing|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 35-65c markets (inefficient regime) lost -24.65c per contract over 220 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 220,
+          "p": 2.220446049250313e-16,
+          "confidence": 0.9166666666666666
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|resting|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 35-65c markets (efficient regime) lost -12.62c per contract over 1262 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 1262,
+          "p": 0.0,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 65-85c markets (efficient regime) lost -16.48c per contract over 235 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 235,
+          "p": 1.6584104134409472e-07,
+          "confidence": 0.9791666666666666
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|resting|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 65-85c markets (efficient regime) lost -5.80c per contract over 439 contracts (p=0.010). Widen the hurdle here or stop trading it.",
+          "n": 439,
+          "p": 0.010148993261153816,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|resting|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 65-85c markets (inefficient regime) lost -14.54c per contract over 201 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 201,
+          "p": 3.4977140637604265e-05,
+          "confidence": 0.8375
+        },
+        {
+          "kind": "segment",
+          "scope": "85-100c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 85-100c markets (efficient regime) lost -4.28c per contract over 257 contracts (p=0.032). Widen the hurdle here or stop trading it.",
+          "n": 257,
+          "p": 0.03162076407611325,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|crossing|efficient",
+          "source": "challenger",
+          "statement": "challenger: crossing in 35-65c markets (efficient regime) lost -11.29c per contract over 637 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 637,
+          "p": 4.0843550763725034e-10,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|crossing|efficient",
+          "source": "challenger",
+          "statement": "challenger: crossing in 65-85c markets (efficient regime) lost -50.16c per contract over 64 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 64,
+          "p": 0.0,
+          "confidence": 0.26666666666666666
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|resting|efficient",
+          "source": "challenger",
+          "statement": "challenger: resting in 65-85c markets (efficient regime) lost -15.32c per contract over 121 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 121,
+          "p": 0.0003147064363231422,
+          "confidence": 0.5041666666666667
+        },
+        {
+          "kind": "contrast",
+          "scope": "15-35c|resting|efficient",
+          "source": "incumbent",
+          "statement": "incumbent beat challenger by +2.63c per contract when resting in 15-35c markets (efficient): +5.52c vs +2.88c over 791/1576 contracts (p=0.181).",
+          "n": 791,
+          "p": 0.18099429977088355,
+          "confidence": 0.09502850114558231
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent beat challenger by +14.65c per contract when crossing in 35-65c markets (efficient): +3.35c vs -11.29c over 585/637 contracts (p=0.000).",
+          "n": 585,
+          "p": 1.0058816668490067e-07,
+          "confidence": 0.9999994970591666
+        },
+        {
+          "kind": "contrast",
+          "scope": "65-85c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent beat challenger by +33.69c per contract when crossing in 65-85c markets (efficient): -16.48c vs -50.16c over 235/64 contracts (p=0.000).",
+          "n": 64,
+          "p": 3.053756336690583e-08,
+          "confidence": 0.5163977006466727
+        },
+        {
+          "kind": "contrast",
+          "scope": "65-85c|resting|efficient",
+          "source": "incumbent",
+          "statement": "incumbent beat challenger by +9.53c per contract when resting in 65-85c markets (efficient): -5.80c vs -15.32c over 439/121 contracts (p=0.048).",
+          "n": 121,
+          "p": 0.04782469342978013,
+          "confidence": 0.5402580590462638
+        },
+        {
+          "kind": "contrast",
+          "scope": "0-15c|crossing|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +7.94c per contract when crossing in 0-15c markets (inefficient): +13.71c vs +5.77c over 97/75 contracts (p=0.184).",
+          "n": 75,
+          "p": 0.1835030994430329,
+          "confidence": 0.04611023882929078
+        },
+        {
+          "kind": "contrast",
+          "scope": "0-15c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +16.90c per contract when resting in 0-15c markets (inefficient): +6.05c vs -10.85c over 1047/200 contracts (p=0.000).",
+          "n": 200,
+          "p": 0.0,
+          "confidence": 0.9128709291752769
+        },
+        {
+          "kind": "contrast",
+          "scope": "15-35c|crossing|efficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +4.32c per contract when crossing in 15-35c markets (efficient): +5.92c vs +1.60c over 995/712 contracts (p=0.049).",
+          "n": 712,
+          "p": 0.04893340708458527,
+          "confidence": 0.7553329645770737
+        },
+        {
+          "kind": "contrast",
+          "scope": "15-35c|crossing|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +21.17c per contract when crossing in 15-35c markets (inefficient): +30.87c vs +9.71c over 415/195 contracts (p=0.000).",
+          "n": 195,
+          "p": 5.050223135238951e-07,
+          "confidence": 0.901385542761189
+        },
+        {
+          "kind": "contrast",
+          "scope": "15-35c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +17.14c per contract when resting in 15-35c markets (inefficient): +12.45c vs -4.69c over 2273/463 contracts (p=0.000).",
+          "n": 463,
+          "p": 2.9753977059954195e-14,
+          "confidence": 0.9999999999998512
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|crossing|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +53.63c per contract when crossing in 35-65c markets (inefficient): +28.98c vs -24.65c over 279/220 contracts (p=0.000).",
+          "n": 220,
+          "p": 0.0,
+          "confidence": 0.9574271077563381
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|resting|efficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +11.59c per contract when resting in 35-65c markets (efficient): -1.03c vs -12.62c over 1142/1262 contracts (p=0.000).",
+          "n": 1142,
+          "p": 6.207926617207704e-09,
+          "confidence": 0.9999999689603669
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +12.02c per contract when resting in 35-65c markets (inefficient): +23.20c vs +11.19c over 1242/485 contracts (p=0.000).",
+          "n": 485,
+          "p": 1.3127339646423763e-06,
+          "confidence": 0.9999934363301768
+        },
+        {
+          "kind": "contrast",
+          "scope": "65-85c|crossing|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +25.08c per contract when crossing in 65-85c markets (inefficient): +26.17c vs +1.09c over 89/82 contracts (p=0.000).",
+          "n": 82,
+          "p": 7.997850381968874e-08,
+          "confidence": 0.5845223634787923
+        },
+        {
+          "kind": "contrast",
+          "scope": "65-85c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +46.16c per contract when resting in 65-85c markets (inefficient): +31.61c vs -14.54c over 120/201 contracts (p=0.000).",
+          "n": 120,
+          "p": 0.0,
+          "confidence": 0.7071067811865476
+        },
+        {
+          "kind": "capability",
+          "scope": "use_maker_first",
+          "source": "challenger",
+          "statement": "Resting orders earned +9.13c/contract for challenger while crossing earned -1.91c/contract for incumbent (8284/2891 contracts, p=0.000). Quoting inside the spread beats paying it, net of adverse selection.",
+          "n": 2891,
+          "p": 0.0,
+          "confidence": 1.0
+        },
+        {
+          "kind": "capability",
+          "scope": "use_calibration",
+          "source": "challenger",
+          "statement": "Learning from every resolution, not only from settled trades, gave challenger 1400 training examples this run. Its forecasts are better calibrated as a result (Brier 0.1807 vs 0.1809).",
+          "n": 1400,
+          "p": 0.01,
+          "confidence": 0.004329222245885167
+        }
+      ],
+      "transfers": [
+        {
+          "learner": "incumbent",
+          "teacher": "challenger",
+          "params": [
+            {
+              "param": "kelly_fraction",
+              "old": 0.29008,
+              "new": 0.29345,
+              "weight": 1.0,
+              "evidence": {
+                "mean_a": 8.3268,
+                "mean_b": -2.1292,
+                "n_a": 11365,
+                "n_b": 7276,
+                "t": 15.48,
+                "p": 0.0,
+                "effect": 10.456
+              }
+            },
+            {
+              "param": "max_pct_per_market",
+              "old": 0.05165,
+              "new": 0.05109,
+              "weight": 1.0,
+              "evidence": {
+                "mean_a": 8.3268,
+                "mean_b": -2.1292,
+                "n_a": 11365,
+                "n_b": 7276,
+                "t": 15.48,
+                "p": 0.0,
+                "effect": 10.456
+              }
+            },
+            {
+              "param": "max_single_order",
+              "old": 23.34648,
+              "new": 23.90868,
+              "weight": 1.0,
+              "evidence": {
+                "mean_a": 8.3268,
+                "mean_b": -2.1292,
+                "n_a": 11365,
+                "n_b": 7276,
+                "t": 15.48,
+                "p": 0.0,
+                "effect": 10.456
+              }
+            }
+          ],
+          "capabilities": [],
+          "blocked": [],
+          "pooled_knowledge": true
+        },
+        {
+          "learner": "challenger",
+          "teacher": "incumbent",
+          "params": [],
+          "capabilities": [],
+          "blocked": [],
+          "pooled_knowledge": false
+        }
+      ],
+      "params": {
+        "incumbent": {
+          "max_spread_cents": 6.0,
+          "min_net_edge_a": 1.5,
+          "min_net_edge_b": 2.5,
+          "kelly_fraction": 0.2934520705318646,
+          "max_pct_per_market": 0.05109132157802257,
+          "max_single_order": 23.90867842197743,
+          "max_orders_per_cycle": 10.0,
+          "min_volume": 100.0,
+          "min_edge_cents": 2.0,
+          "max_sane_edge_cents": 25.0,
+          "grade_a_threshold": 0.7,
+          "daily_loss_pct": 0.08,
+          "perf_min_sample": 10.0,
+          "perf_mute_roi": -10.0,
+          "use_market_prior": false,
+          "use_calibration": false,
+          "use_exact_fees": false,
+          "use_maker_first": true,
+          "use_exits": false,
+          "use_cluster_caps": false
+        },
+        "challenger": {
+          "max_spread_cents": 6.0,
+          "min_net_edge_cents": 1.2,
+          "edge_sigma_multiple": 0.2,
+          "edge_shrink_ridge": 400.0,
+          "use_tier_shrinkage": false,
+          "kelly_fraction": 0.3,
+          "kelly_uncertainty_z": 1.0,
+          "max_pct_per_market": 0.05,
+          "max_pct_per_cluster": 0.12,
+          "max_gross_exposure_pct": 0.35,
+          "max_single_order": 25.0,
+          "max_orders_per_cycle": 12.0,
+          "cash_reserve_pct": 0.1,
+          "min_volume": 0.0,
+          "disagreement_cap_points": 0.45,
+          "adverse_selection_cents": 1.2,
+          "adverse_volume_scale": 300.0,
+          "maker_min_spread": 2.0,
+          "maker_ttl_ticks": 3.0,
+          "maker_min_ticks_left": 4.0,
+          "maker_adverse_cents": 1.5,
+          "exit_profit_cents": 2.0,
+          "exit_stop_cents": 3.0,
+          "min_ticks_to_open": 2.0,
+          "use_market_prior": true,
+          "use_calibration": true,
+          "use_exact_fees": true,
+          "use_maker_first": true,
+          "use_exits": false,
+          "use_cluster_caps": true
+        }
+      },
+      "divergence": {
+        "incumbent|challenger": 0.345
+      }
+    },
+    {
+      "round": 7,
+      "scores": {
+        "incumbent": {
+          "bot": "incumbent",
+          "round": 7,
+          "pnl_$": 64.39,
+          "return_%": 6.44,
+          "maxDD_%": 3.75,
+          "sharpe": 0.139,
+          "trades": 66,
+          "contracts": 1379,
+          "fees_$": 17.27,
+          "fee_per_ct_c": 1.25,
+          "maker_%": 53.0,
+          "brier": 0.1951,
+          "brier_skill_vs_mkt": -0.0172,
+          "ece": 0.0805,
+          "win_%": 48.5
+        },
+        "challenger": {
+          "bot": "challenger",
+          "round": 7,
+          "pnl_$": 50.5,
+          "return_%": 5.05,
+          "maxDD_%": 13.17,
+          "sharpe": -0.067,
+          "trades": 94,
+          "contracts": 1881,
+          "fees_$": 23.75,
+          "fee_per_ct_c": 1.26,
+          "maker_%": 63.8,
+          "brier": 0.1885,
+          "brier_skill_vs_mkt": 0.017,
+          "ece": 0.0779,
+          "win_%": 35.1
+        }
+      },
+      "head_to_head": {
+        "challenger_vs_incumbent": {
+          "pnl_delta_$": -13.89,
+          "return_delta_%": -1.39,
+          "brier_delta": 0.0066,
+          "brier_skill_delta": 0.0342,
+          "maxDD_delta_%": -9.4206,
+          "fee_per_ct_delta_c": -0.0103,
+          "trades_delta": 28
+        }
+      },
+      "lessons": [
+        {
+          "kind": "segment",
+          "scope": "0-15c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 0-15c markets (efficient regime) lost -3.03c per contract over 599 contracts (p=0.001). Widen the hurdle here or stop trading it.",
+          "n": 599,
+          "p": 0.0009952333295650817,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "0-15c|resting|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 0-15c markets (inefficient regime) lost -11.05c per contract over 223 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 223,
+          "p": 0.0,
+          "confidence": 0.9291666666666667
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|crossing|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 35-65c markets (inefficient regime) lost -17.56c per contract over 243 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 243,
+          "p": 9.222270502817764e-09,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|resting|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 35-65c markets (efficient regime) lost -10.83c per contract over 1469 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 1469,
+          "p": 0.0,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|crossing|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 65-85c markets (inefficient regime) lost -15.45c per contract over 105 contracts (p=0.001). Widen the hurdle here or stop trading it.",
+          "n": 105,
+          "p": 0.0010892346478876824,
+          "confidence": 0.4375
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 65-85c markets (efficient regime) lost -10.76c per contract over 350 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 350,
+          "p": 1.0014575141825688e-05,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|resting|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 65-85c markets (efficient regime) lost -4.87c per contract over 554 contracts (p=0.012). Widen the hurdle here or stop trading it.",
+          "n": 554,
+          "p": 0.01232901261969177,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|resting|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 65-85c markets (inefficient regime) lost -16.46c per contract over 247 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 247,
+          "p": 1.2203388255471737e-07,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "0-15c|crossing|efficient",
+          "source": "challenger",
+          "statement": "challenger: crossing in 0-15c markets (efficient regime) lost -3.11c per contract over 580 contracts (p=0.007). Widen the hurdle here or stop trading it.",
+          "n": 580,
+          "p": 0.006839090252711788,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|crossing|efficient",
+          "source": "challenger",
+          "statement": "challenger: crossing in 35-65c markets (efficient regime) lost -11.61c per contract over 675 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 675,
+          "p": 7.949330083079076e-11,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|resting|efficient",
+          "source": "challenger",
+          "statement": "challenger: resting in 35-65c markets (efficient regime) lost -4.06c per contract over 1367 contracts (p=0.002). Widen the hurdle here or stop trading it.",
+          "n": 1367,
+          "p": 0.0018965415902008065,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|crossing|efficient",
+          "source": "challenger",
+          "statement": "challenger: crossing in 65-85c markets (efficient regime) lost -36.73c per contract over 114 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 114,
+          "p": 1.9984014443252818e-15,
+          "confidence": 0.475
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|resting|efficient",
+          "source": "challenger",
+          "statement": "challenger: resting in 65-85c markets (efficient regime) lost -15.32c per contract over 121 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 121,
+          "p": 0.0003147064363231422,
+          "confidence": 0.5041666666666667
+        },
+        {
+          "kind": "contrast",
+          "scope": "15-35c|resting|efficient",
+          "source": "incumbent",
+          "statement": "incumbent beat challenger by +9.38c per contract when resting in 15-35c markets (efficient): +9.87c vs +0.49c over 952/1826 contracts (p=0.000).",
+          "n": 952,
+          "p": 3.040626617156761e-07,
+          "confidence": 0.9999984796866914
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent beat challenger by +9.73c per contract when crossing in 35-65c markets (efficient): -1.88c vs -11.61c over 662/675 contracts (p=0.000).",
+          "n": 662,
+          "p": 0.0002533437314737874,
+          "confidence": 0.9987332813426311
+        },
+        {
+          "kind": "contrast",
+          "scope": "65-85c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent beat challenger by +25.97c per contract when crossing in 65-85c markets (efficient): -10.76c vs -36.73c over 350/114 contracts (p=0.000).",
+          "n": 114,
+          "p": 6.805683208099822e-07,
+          "confidence": 0.6892000923577828
+        },
+        {
+          "kind": "contrast",
+          "scope": "65-85c|resting|efficient",
+          "source": "incumbent",
+          "statement": "incumbent beat challenger by +10.46c per contract when resting in 65-85c markets (efficient): -4.87c vs -15.32c over 554/121 contracts (p=0.025).",
+          "n": 121,
+          "p": 0.025379309796628835,
+          "confidence": 0.6199444396391594
+        },
+        {
+          "kind": "contrast",
+          "scope": "0-15c|crossing|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +9.80c per contract when crossing in 0-15c markets (inefficient): +13.21c vs +3.41c over 155/98 contracts (p=0.033).",
+          "n": 98,
+          "p": 0.033146557780740604,
+          "confidence": 0.5331047989217604
+        },
+        {
+          "kind": "contrast",
+          "scope": "0-15c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +25.79c per contract when resting in 0-15c markets (inefficient): +14.74c vs -11.05c over 1300/223 contracts (p=0.000).",
+          "n": 223,
+          "p": 0.0,
+          "confidence": 0.963932916061417
+        },
+        {
+          "kind": "contrast",
+          "scope": "15-35c|crossing|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +16.06c per contract when crossing in 15-35c markets (inefficient): +25.77c vs +9.71c over 469/195 contracts (p=0.000).",
+          "n": 195,
+          "p": 9.753586276928239e-05,
+          "confidence": 0.9009482306729832
+        },
+        {
+          "kind": "contrast",
+          "scope": "15-35c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +6.01c per contract when resting in 15-35c markets (inefficient): +13.53c vs +7.53c over 2448/555 contracts (p=0.008).",
+          "n": 555,
+          "p": 0.008258081799421335,
+          "confidence": 0.9587095910028933
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|crossing|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +41.75c per contract when crossing in 35-65c markets (inefficient): +24.18c vs -17.56c over 332/243 contracts (p=0.000).",
+          "n": 243,
+          "p": 0.0,
+          "confidence": 1.0
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|resting|efficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +6.77c per contract when resting in 35-65c markets (efficient): -4.06c vs -10.83c over 1367/1469 contracts (p=0.000).",
+          "n": 1367,
+          "p": 0.00023061685837721946,
+          "confidence": 0.9988469157081139
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +5.33c per contract when resting in 35-65c markets (inefficient): +18.61c vs +13.27c over 1597/577 contracts (p=0.017).",
+          "n": 577,
+          "p": 0.017480479733915866,
+          "confidence": 0.9125976013304207
+        },
+        {
+          "kind": "contrast",
+          "scope": "65-85c|crossing|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +42.17c per contract when crossing in 65-85c markets (inefficient): +26.73c vs -15.45c over 92/105 contracts (p=0.000).",
+          "n": 92,
+          "p": 0.0,
+          "confidence": 0.6191391873668903
+        },
+        {
+          "kind": "contrast",
+          "scope": "65-85c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +48.08c per contract when resting in 65-85c markets (inefficient): +31.61c vs -16.46c over 120/247 contracts (p=0.000).",
+          "n": 120,
+          "p": 0.0,
+          "confidence": 0.7071067811865476
+        },
+        {
+          "kind": "capability",
+          "scope": "use_maker_first",
+          "source": "challenger",
+          "statement": "Resting orders earned +8.85c/contract for challenger while crossing earned -2.96c/contract for incumbent (9619/3465 contracts, p=0.000). Quoting inside the spread beats paying it, net of adverse selection.",
+          "n": 3465,
+          "p": 0.0,
+          "confidence": 1.0
+        },
+        {
+          "kind": "capability",
+          "scope": "use_calibration",
+          "source": "challenger",
+          "statement": "Learning from every resolution, not only from settled trades, gave challenger 1600 training examples this run. Its forecasts are better calibrated as a result (Brier 0.1817 vs 0.1827).",
+          "n": 1600,
+          "p": 0.01,
+          "confidence": 0.020192319316724716
+        }
+      ],
+      "transfers": [
+        {
+          "learner": "incumbent",
+          "teacher": "challenger",
+          "params": [
+            {
+              "param": "kelly_fraction",
+              "old": 0.29345,
+              "new": 0.29568,
+              "weight": 1.0,
+              "evidence": {
+                "mean_a": 7.5256,
+                "mean_b": -1.046,
+                "n_a": 13246,
+                "n_b": 8655,
+                "t": 13.695,
+                "p": 0.0,
+                "effect": 8.5716
+              }
+            },
+            {
+              "param": "max_pct_per_market",
+              "old": 0.05109,
+              "new": 0.05072,
+              "weight": 1.0,
+              "evidence": {
+                "mean_a": 7.5256,
+                "mean_b": -1.046,
+                "n_a": 13246,
+                "n_b": 8655,
+                "t": 13.695,
+                "p": 0.0,
+                "effect": 8.5716
+              }
+            },
+            {
+              "param": "max_single_order",
+              "old": 23.90868,
+              "new": 24.27973,
+              "weight": 1.0,
+              "evidence": {
+                "mean_a": 7.5256,
+                "mean_b": -1.046,
+                "n_a": 13246,
+                "n_b": 8655,
+                "t": 13.695,
+                "p": 0.0,
+                "effect": 8.5716
+              }
+            }
+          ],
+          "capabilities": [],
+          "blocked": [],
+          "pooled_knowledge": true
+        },
+        {
+          "learner": "challenger",
+          "teacher": "incumbent",
+          "params": [],
+          "capabilities": [],
+          "blocked": [],
+          "pooled_knowledge": false
+        }
+      ],
+      "params": {
+        "incumbent": {
+          "max_spread_cents": 6.0,
+          "min_net_edge_a": 1.5,
+          "min_net_edge_b": 2.5,
+          "kelly_fraction": 0.29567836655103064,
+          "max_pct_per_market": 0.0507202722414949,
+          "max_single_order": 24.279727758505103,
+          "max_orders_per_cycle": 10.0,
+          "min_volume": 100.0,
+          "min_edge_cents": 2.0,
+          "max_sane_edge_cents": 25.0,
+          "grade_a_threshold": 0.7,
+          "daily_loss_pct": 0.08,
+          "perf_min_sample": 10.0,
+          "perf_mute_roi": -10.0,
+          "use_market_prior": false,
+          "use_calibration": false,
+          "use_exact_fees": false,
+          "use_maker_first": true,
+          "use_exits": false,
+          "use_cluster_caps": false
+        },
+        "challenger": {
+          "max_spread_cents": 6.0,
+          "min_net_edge_cents": 1.2,
+          "edge_sigma_multiple": 0.2,
+          "edge_shrink_ridge": 400.0,
+          "use_tier_shrinkage": false,
+          "kelly_fraction": 0.3,
+          "kelly_uncertainty_z": 1.0,
+          "max_pct_per_market": 0.05,
+          "max_pct_per_cluster": 0.12,
+          "max_gross_exposure_pct": 0.35,
+          "max_single_order": 25.0,
+          "max_orders_per_cycle": 12.0,
+          "cash_reserve_pct": 0.1,
+          "min_volume": 0.0,
+          "disagreement_cap_points": 0.45,
+          "adverse_selection_cents": 1.2,
+          "adverse_volume_scale": 300.0,
+          "maker_min_spread": 2.0,
+          "maker_ttl_ticks": 3.0,
+          "maker_min_ticks_left": 4.0,
+          "maker_adverse_cents": 1.5,
+          "exit_profit_cents": 2.0,
+          "exit_stop_cents": 3.0,
+          "min_ticks_to_open": 2.0,
+          "use_market_prior": true,
+          "use_calibration": true,
+          "use_exact_fees": true,
+          "use_maker_first": true,
+          "use_exits": false,
+          "use_cluster_caps": true
+        }
+      },
+      "divergence": {
+        "incumbent|challenger": 0.3439
+      }
+    },
+    {
+      "round": 8,
+      "scores": {
+        "incumbent": {
+          "bot": "incumbent",
+          "round": 8,
+          "pnl_$": -57.94,
+          "return_%": -5.79,
+          "maxDD_%": 12.19,
+          "sharpe": -0.075,
+          "trades": 74,
+          "contracts": 1703,
+          "fees_$": 22.81,
+          "fee_per_ct_c": 1.34,
+          "maker_%": 62.2,
+          "brier": 0.2048,
+          "brier_skill_vs_mkt": -0.0772,
+          "ece": 0.0967,
+          "win_%": 43.2
+        },
+        "challenger": {
+          "bot": "challenger",
+          "round": 8,
+          "pnl_$": -13.85,
+          "return_%": -1.39,
+          "maxDD_%": 5.93,
+          "sharpe": 0.041,
+          "trades": 108,
+          "contracts": 2224,
+          "fees_$": 31.28,
+          "fee_per_ct_c": 1.41,
+          "maker_%": 63.0,
+          "brier": 0.1928,
+          "brier_skill_vs_mkt": -0.0141,
+          "ece": 0.099,
+          "win_%": 33.3
+        }
+      },
+      "head_to_head": {
+        "challenger_vs_incumbent": {
+          "pnl_delta_$": 44.09,
+          "return_delta_%": 4.41,
+          "brier_delta": 0.012,
+          "brier_skill_delta": 0.0631,
+          "maxDD_delta_%": 6.2665,
+          "fee_per_ct_delta_c": -0.0671,
+          "trades_delta": 34
+        }
+      },
+      "lessons": [
+        {
+          "kind": "segment",
+          "scope": "0-15c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 0-15c markets (efficient regime) lost -3.34c per contract over 690 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 690,
+          "p": 3.144870425053625e-05,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "0-15c|resting|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 0-15c markets (inefficient regime) lost -11.05c per contract over 223 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 223,
+          "p": 0.0,
+          "confidence": 0.9291666666666667
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 35-65c markets (efficient regime) lost -6.26c per contract over 758 contracts (p=0.001). Widen the hurdle here or stop trading it.",
+          "n": 758,
+          "p": 0.0007518478689523267,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|crossing|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 35-65c markets (inefficient regime) lost -14.86c per contract over 281 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 281,
+          "p": 2.418278719495959e-07,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|resting|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 35-65c markets (efficient regime) lost -9.42c per contract over 1853 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 1853,
+          "p": 4.440892098500626e-16,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|crossing|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 65-85c markets (inefficient regime) lost -8.17c per contract over 129 contracts (p=0.045). Widen the hurdle here or stop trading it.",
+          "n": 129,
+          "p": 0.04493092321565095,
+          "confidence": 0.5375
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 65-85c markets (efficient regime) lost -4.83c per contract over 476 contracts (p=0.019). Widen the hurdle here or stop trading it.",
+          "n": 476,
+          "p": 0.019207923780157454,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|resting|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 65-85c markets (efficient regime) lost -5.90c per contract over 770 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 770,
+          "p": 0.0003520867306163744,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|resting|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 65-85c markets (inefficient regime) lost -12.56c per contract over 271 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 271,
+          "p": 1.8707793974392928e-05,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "85-100c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 85-100c markets (efficient regime) lost -4.55c per contract over 349 contracts (p=0.007). Widen the hurdle here or stop trading it.",
+          "n": 349,
+          "p": 0.006760311157034682,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "0-15c|crossing|efficient",
+          "source": "challenger",
+          "statement": "challenger: crossing in 0-15c markets (efficient regime) lost -4.13c per contract over 658 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 658,
+          "p": 5.9536473971277815e-05,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|crossing|efficient",
+          "source": "challenger",
+          "statement": "challenger: crossing in 35-65c markets (efficient regime) lost -15.23c per contract over 863 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 863,
+          "p": 0.0,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|resting|efficient",
+          "source": "challenger",
+          "statement": "challenger: resting in 35-65c markets (efficient regime) lost -3.03c per contract over 1646 contracts (p=0.012). Widen the hurdle here or stop trading it.",
+          "n": 1646,
+          "p": 0.01152891543936363,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|crossing|efficient",
+          "source": "challenger",
+          "statement": "challenger: crossing in 65-85c markets (efficient regime) lost -42.10c per contract over 139 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 139,
+          "p": 0.0,
+          "confidence": 0.5791666666666667
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|resting|efficient",
+          "source": "challenger",
+          "statement": "challenger: resting in 65-85c markets (efficient regime) lost -15.32c per contract over 121 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 121,
+          "p": 0.0003147064363231422,
+          "confidence": 0.5041666666666667
+        },
+        {
+          "kind": "contrast",
+          "scope": "15-35c|resting|efficient",
+          "source": "incumbent",
+          "statement": "incumbent beat challenger by +7.20c per contract when resting in 15-35c markets (efficient): +8.37c vs +1.16c over 1144/2126 contracts (p=0.000).",
+          "n": 1144,
+          "p": 1.7822473071804623e-05,
+          "confidence": 0.999910887634641
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent beat challenger by +8.97c per contract when crossing in 35-65c markets (efficient): -6.26c vs -15.23c over 758/863 contracts (p=0.000).",
+          "n": 758,
+          "p": 0.0001894680438547791,
+          "confidence": 0.9990526597807261
+        },
+        {
+          "kind": "contrast",
+          "scope": "65-85c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent beat challenger by +37.27c per contract when crossing in 65-85c markets (efficient): -4.83c vs -42.10c over 476/139 contracts (p=0.000).",
+          "n": 139,
+          "p": 0.0,
+          "confidence": 0.761030003788725
+        },
+        {
+          "kind": "contrast",
+          "scope": "65-85c|resting|efficient",
+          "source": "incumbent",
+          "statement": "incumbent beat challenger by +9.42c per contract when resting in 65-85c markets (efficient): -5.90c vs -15.32c over 770/121 contracts (p=0.039).",
+          "n": 121,
+          "p": 0.03893472089743333,
+          "confidence": 0.5718195483151159
+        },
+        {
+          "kind": "contrast",
+          "scope": "0-15c|crossing|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +8.76c per contract when crossing in 0-15c markets (inefficient): +9.99c vs +1.23c over 184/142 contracts (p=0.016).",
+          "n": 142,
+          "p": 0.016327733202070593,
+          "confidence": 0.7064023601052634
+        },
+        {
+          "kind": "contrast",
+          "scope": "0-15c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +25.63c per contract when resting in 0-15c markets (inefficient): +14.58c vs -11.05c over 1404/223 contracts (p=0.000).",
+          "n": 223,
+          "p": 0.0,
+          "confidence": 0.963932916061417
+        },
+        {
+          "kind": "contrast",
+          "scope": "15-35c|crossing|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +11.91c per contract when crossing in 15-35c markets (inefficient): +21.62c vs +9.71c over 552/195 contracts (p=0.003).",
+          "n": 195,
+          "p": 0.0032454196784748035,
+          "confidence": 0.8867609100395714
+        },
+        {
+          "kind": "contrast",
+          "scope": "15-35c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +4.28c per contract when resting in 15-35c markets (inefficient): +11.56c vs +7.27c over 2674/627 contracts (p=0.045).",
+          "n": 627,
+          "p": 0.04453027934422993,
+          "confidence": 0.7773486032788504
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|crossing|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +33.78c per contract when crossing in 35-65c markets (inefficient): +18.93c vs -14.86c over 416/281 contracts (p=0.000).",
+          "n": 281,
+          "p": 0.0,
+          "confidence": 1.0
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|resting|efficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +6.39c per contract when resting in 35-65c markets (efficient): -3.03c vs -9.42c over 1646/1853 contracts (p=0.000).",
+          "n": 1646,
+          "p": 0.00012653515597493836,
+          "confidence": 0.9993673242201253
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +8.10c per contract when resting in 35-65c markets (inefficient): +18.77c vs +10.67c over 1967/721 contracts (p=0.000).",
+          "n": 721,
+          "p": 7.96527827655602e-05,
+          "confidence": 0.9996017360861722
+        },
+        {
+          "kind": "contrast",
+          "scope": "65-85c|crossing|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +34.90c per contract when crossing in 65-85c markets (inefficient): +26.73c vs -8.17c over 92/129 contracts (p=0.000).",
+          "n": 92,
+          "p": 0.0,
+          "confidence": 0.6191391873668903
+        },
+        {
+          "kind": "contrast",
+          "scope": "65-85c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +35.95c per contract when resting in 65-85c markets (inefficient): +23.39c vs -12.56c over 195/271 contracts (p=0.000).",
+          "n": 195,
+          "p": 0.0,
+          "confidence": 0.9013878188659973
+        },
+        {
+          "kind": "capability",
+          "scope": "use_maker_first",
+          "source": "challenger",
+          "statement": "Resting orders earned +8.33c/contract for challenger while crossing earned -3.21c/contract for incumbent (11124/4064 contracts, p=0.000). Quoting inside the spread beats paying it, net of adverse selection.",
+          "n": 4064,
+          "p": 0.0,
+          "confidence": 1.0
+        },
+        {
+          "kind": "capability",
+          "scope": "use_market_prior",
+          "source": "challenger",
+          "statement": "challenger forecasts better than incumbent: Brier 0.1829 vs 0.1852 over 1800/1800 resolutions. Skill vs the market price: -0.011 vs -0.023. Blending the price into the estimate, rather than only subtracting it, is what closes that gap.",
+          "n": 1800,
+          "p": 0.05,
+          "confidence": 0.12043377206162852
+        },
+        {
+          "kind": "capability",
+          "scope": "use_calibration",
+          "source": "challenger",
+          "statement": "Learning from every resolution, not only from settled trades, gave challenger 1800 training examples this run. Its forecasts are better calibrated as a result (Brier 0.1829 vs 0.1852).",
+          "n": 1800,
+          "p": 0.01,
+          "confidence": 0.0445986226549705
+        }
+      ],
+      "transfers": [
+        {
+          "learner": "incumbent",
+          "teacher": "challenger",
+          "params": [
+            {
+              "param": "kelly_fraction",
+              "old": 0.29568,
+              "new": 0.29715,
+              "weight": 1.0,
+              "evidence": {
+                "mean_a": 6.3542,
+                "mean_b": -1.4334,
+                "n_a": 15470,
+                "n_b": 10358,
+                "t": 13.601,
+                "p": 0.0,
+                "effect": 7.7876
+              }
+            },
+            {
+              "param": "max_pct_per_market",
+              "old": 0.05072,
+              "new": 0.05048,
+              "weight": 1.0,
+              "evidence": {
+                "mean_a": 6.3542,
+                "mean_b": -1.4334,
+                "n_a": 15470,
+                "n_b": 10358,
+                "t": 13.601,
+                "p": 0.0,
+                "effect": 7.7876
+              }
+            },
+            {
+              "param": "max_single_order",
+              "old": 24.27973,
+              "new": 24.52462,
+              "weight": 1.0,
+              "evidence": {
+                "mean_a": 6.3542,
+                "mean_b": -1.4334,
+                "n_a": 15470,
+                "n_b": 10358,
+                "t": 13.601,
+                "p": 0.0,
+                "effect": 7.7876
+              }
+            }
+          ],
+          "capabilities": [],
+          "blocked": [],
+          "pooled_knowledge": true
+        },
+        {
+          "learner": "challenger",
+          "teacher": "incumbent",
+          "params": [],
+          "capabilities": [],
+          "blocked": [],
+          "pooled_knowledge": false
+        }
+      ],
+      "params": {
+        "incumbent": {
+          "max_spread_cents": 6.0,
+          "min_net_edge_a": 1.5,
+          "min_net_edge_b": 2.5,
+          "kelly_fraction": 0.2971477219236802,
+          "max_pct_per_market": 0.05047537967938663,
+          "max_single_order": 24.52462032061337,
+          "max_orders_per_cycle": 10.0,
+          "min_volume": 100.0,
+          "min_edge_cents": 2.0,
+          "max_sane_edge_cents": 25.0,
+          "grade_a_threshold": 0.7,
+          "daily_loss_pct": 0.08,
+          "perf_min_sample": 10.0,
+          "perf_mute_roi": -10.0,
+          "use_market_prior": false,
+          "use_calibration": false,
+          "use_exact_fees": false,
+          "use_maker_first": true,
+          "use_exits": false,
+          "use_cluster_caps": false
+        },
+        "challenger": {
+          "max_spread_cents": 6.0,
+          "min_net_edge_cents": 1.2,
+          "edge_sigma_multiple": 0.2,
+          "edge_shrink_ridge": 400.0,
+          "use_tier_shrinkage": false,
+          "kelly_fraction": 0.3,
+          "kelly_uncertainty_z": 1.0,
+          "max_pct_per_market": 0.05,
+          "max_pct_per_cluster": 0.12,
+          "max_gross_exposure_pct": 0.35,
+          "max_single_order": 25.0,
+          "max_orders_per_cycle": 12.0,
+          "cash_reserve_pct": 0.1,
+          "min_volume": 0.0,
+          "disagreement_cap_points": 0.45,
+          "adverse_selection_cents": 1.2,
+          "adverse_volume_scale": 300.0,
+          "maker_min_spread": 2.0,
+          "maker_ttl_ticks": 3.0,
+          "maker_min_ticks_left": 4.0,
+          "maker_adverse_cents": 1.5,
+          "exit_profit_cents": 2.0,
+          "exit_stop_cents": 3.0,
+          "min_ticks_to_open": 2.0,
+          "use_market_prior": true,
+          "use_calibration": true,
+          "use_exact_fees": true,
+          "use_maker_first": true,
+          "use_exits": false,
+          "use_cluster_caps": true
+        }
+      },
+      "divergence": {
+        "incumbent|challenger": 0.3432
+      }
+    },
+    {
+      "round": 9,
+      "scores": {
+        "incumbent": {
+          "bot": "incumbent",
+          "round": 9,
+          "pnl_$": 66.22,
+          "return_%": 6.62,
+          "maxDD_%": 4.31,
+          "sharpe": 0.101,
+          "trades": 66,
+          "contracts": 1506,
+          "fees_$": 19.27,
+          "fee_per_ct_c": 1.28,
+          "maker_%": 53.0,
+          "brier": 0.2038,
+          "brier_skill_vs_mkt": -0.0332,
+          "ece": 0.0976,
+          "win_%": 50.0
+        },
+        "challenger": {
+          "bot": "challenger",
+          "round": 9,
+          "pnl_$": 144.0,
+          "return_%": 14.4,
+          "maxDD_%": 7.15,
+          "sharpe": 0.163,
+          "trades": 118,
+          "contracts": 2418,
+          "fees_$": 29.83,
+          "fee_per_ct_c": 1.23,
+          "maker_%": 64.4,
+          "brier": 0.1938,
+          "brier_skill_vs_mkt": 0.0178,
+          "ece": 0.0749,
+          "win_%": 34.7
+        }
+      },
+      "head_to_head": {
+        "challenger_vs_incumbent": {
+          "pnl_delta_$": 77.78,
+          "return_delta_%": 7.78,
+          "brier_delta": 0.0101,
+          "brier_skill_delta": 0.051,
+          "maxDD_delta_%": -2.8439,
+          "fee_per_ct_delta_c": 0.0459,
+          "trades_delta": 52
+        }
+      },
+      "lessons": [
+        {
+          "kind": "segment",
+          "scope": "0-15c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 0-15c markets (efficient regime) lost -3.87c per contract over 757 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 757,
+          "p": 1.4007604742793944e-07,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "0-15c|resting|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 0-15c markets (inefficient regime) lost -10.41c per contract over 271 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 271,
+          "p": 0.0,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 35-65c markets (efficient regime) lost -5.16c per contract over 939 contracts (p=0.002). Widen the hurdle here or stop trading it.",
+          "n": 939,
+          "p": 0.002108244754432498,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|crossing|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 35-65c markets (inefficient regime) lost -13.96c per contract over 329 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 329,
+          "p": 1.0981495535133945e-07,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|resting|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 35-65c markets (efficient regime) lost -10.24c per contract over 1997 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 1997,
+          "p": 0.0,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|crossing|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 65-85c markets (inefficient regime) lost -8.17c per contract over 129 contracts (p=0.045). Widen the hurdle here or stop trading it.",
+          "n": 129,
+          "p": 0.04493092321565095,
+          "confidence": 0.5375
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: crossing in 65-85c markets (efficient regime) lost -4.76c per contract over 547 contracts (p=0.013). Widen the hurdle here or stop trading it.",
+          "n": 547,
+          "p": 0.013237604943157066,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|resting|efficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 65-85c markets (efficient regime) lost -3.92c per contract over 914 contracts (p=0.008). Widen the hurdle here or stop trading it.",
+          "n": 914,
+          "p": 0.007574117154472759,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|resting|inefficient",
+          "source": "incumbent",
+          "statement": "incumbent: resting in 65-85c markets (inefficient regime) lost -16.22c per contract over 367 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 367,
+          "p": 8.597700329460167e-11,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "0-15c|crossing|efficient",
+          "source": "challenger",
+          "statement": "challenger: crossing in 0-15c markets (efficient regime) lost -3.44c per contract over 726 contracts (p=0.001). Widen the hurdle here or stop trading it.",
+          "n": 726,
+          "p": 0.000898896596955634,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|crossing|efficient",
+          "source": "challenger",
+          "statement": "challenger: crossing in 35-65c markets (efficient regime) lost -14.92c per contract over 1016 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 1016,
+          "p": 0.0,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "35-65c|resting|efficient",
+          "source": "challenger",
+          "statement": "challenger: resting in 35-65c markets (efficient regime) lost -4.47c per contract over 1871 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 1871,
+          "p": 6.216831109639998e-05,
+          "confidence": 1.0
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|crossing|efficient",
+          "source": "challenger",
+          "statement": "challenger: crossing in 65-85c markets (efficient regime) lost -22.91c per contract over 189 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 189,
+          "p": 6.175184807943879e-10,
+          "confidence": 0.7875
+        },
+        {
+          "kind": "segment",
+          "scope": "65-85c|resting|efficient",
+          "source": "challenger",
+          "statement": "challenger: resting in 65-85c markets (efficient regime) lost -15.32c per contract over 121 contracts (p=0.000). Widen the hurdle here or stop trading it.",
+          "n": 121,
+          "p": 0.0003147064363231422,
+          "confidence": 0.5041666666666667
+        },
+        {
+          "kind": "contrast",
+          "scope": "15-35c|resting|efficient",
+          "source": "incumbent",
+          "statement": "incumbent beat challenger by +9.16c per contract when resting in 15-35c markets (efficient): +9.66c vs +0.50c over 1312/2307 contracts (p=0.000).",
+          "n": 1312,
+          "p": 8.776693594114704e-09,
+          "confidence": 0.999999956116532
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent beat challenger by +9.76c per contract when crossing in 35-65c markets (efficient): -5.16c vs -14.92c over 939/1016 contracts (p=0.000).",
+          "n": 939,
+          "p": 1.0280197756618037e-05,
+          "confidence": 0.9999485990112169
+        },
+        {
+          "kind": "contrast",
+          "scope": "65-85c|crossing|efficient",
+          "source": "incumbent",
+          "statement": "incumbent beat challenger by +18.15c per contract when crossing in 65-85c markets (efficient): -4.76c vs -22.91c over 547/189 contracts (p=0.000).",
+          "n": 189,
+          "p": 1.3708296564995948e-05,
+          "confidence": 0.8873511429328158
+        },
+        {
+          "kind": "contrast",
+          "scope": "65-85c|resting|efficient",
+          "source": "incumbent",
+          "statement": "incumbent beat challenger by +11.41c per contract when resting in 65-85c markets (efficient): -3.92c vs -15.32c over 914/121 contracts (p=0.011).",
+          "n": 121,
+          "p": 0.0112298829856734,
+          "confidence": 0.6701782261699362
+        },
+        {
+          "kind": "contrast",
+          "scope": "0-15c|crossing|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +5.09c per contract when crossing in 0-15c markets (inefficient): +14.61c vs +9.52c over 286/214 contracts (p=0.149).",
+          "n": 214,
+          "p": 0.14923864121880448,
+          "confidence": 0.23966494118026804
+        },
+        {
+          "kind": "contrast",
+          "scope": "0-15c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +26.89c per contract when resting in 0-15c markets (inefficient): +16.48c vs -10.41c over 1693/271 contracts (p=0.000).",
+          "n": 271,
+          "p": 0.0,
+          "confidence": 1.0
+        },
+        {
+          "kind": "contrast",
+          "scope": "15-35c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +6.37c per contract when resting in 15-35c markets (inefficient): +12.45c vs +6.07c over 3130/651 contracts (p=0.002).",
+          "n": 651,
+          "p": 0.0018886128317627815,
+          "confidence": 0.9905569358411861
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|crossing|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +28.64c per contract when crossing in 35-65c markets (inefficient): +14.68c vs -13.96c over 524/329 contracts (p=0.000).",
+          "n": 329,
+          "p": 0.0,
+          "confidence": 1.0
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|resting|efficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +5.77c per contract when resting in 35-65c markets (efficient): -4.47c vs -10.24c over 1871/1997 contracts (p=0.000).",
+          "n": 1871,
+          "p": 0.00023792158910862504,
+          "confidence": 0.9988103920544569
+        },
+        {
+          "kind": "contrast",
+          "scope": "35-65c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +5.17c per contract when resting in 35-65c markets (inefficient): +17.15c vs +11.98c over 2233/889 contracts (p=0.006).",
+          "n": 889,
+          "p": 0.0056741371731634516,
+          "confidence": 0.9716293141341827
+        },
+        {
+          "kind": "contrast",
+          "scope": "65-85c|crossing|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +34.90c per contract when crossing in 65-85c markets (inefficient): +26.73c vs -8.17c over 92/129 contracts (p=0.000).",
+          "n": 92,
+          "p": 0.0,
+          "confidence": 0.6191391873668903
+        },
+        {
+          "kind": "contrast",
+          "scope": "65-85c|resting|inefficient",
+          "source": "challenger",
+          "statement": "challenger beat incumbent by +39.61c per contract when resting in 65-85c markets (inefficient): +23.39c vs -16.22c over 195/367 contracts (p=0.000).",
+          "n": 195,
+          "p": 0.0,
+          "confidence": 0.9013878188659973
+        },
+        {
+          "kind": "capability",
+          "scope": "use_maker_first",
+          "source": "challenger",
+          "statement": "Resting orders earned +8.19c/contract for challenger while crossing earned -1.36c/contract for incumbent (12766/4730 contracts, p=0.000). Quoting inside the spread beats paying it, net of adverse selection.",
+          "n": 4730,
+          "p": 0.0,
+          "confidence": 1.0
+        },
+        {
+          "kind": "capability",
+          "scope": "use_market_prior",
+          "source": "challenger",
+          "statement": "challenger forecasts better than incumbent: Brier 0.1840 vs 0.1870 over 2000/2000 resolutions. Skill vs the market price: -0.008 vs -0.024. Blending the price into the estimate, rather than only subtracting it, is what closes that gap.",
+          "n": 2000,
+          "p": 0.05,
+          "confidence": 0.16106151571039032
+        },
+        {
+          "kind": "capability",
+          "scope": "use_calibration",
+          "source": "challenger",
+          "statement": "Learning from every resolution, not only from settled trades, gave challenger 2000 training examples this run. Its forecasts are better calibrated as a result (Brier 0.1840 vs 0.1870).",
+          "n": 2000,
+          "p": 0.01,
+          "confidence": 0.06024549448219896
+        }
+      ],
+      "transfers": [],
+      "params": {
+        "incumbent": {
+          "max_spread_cents": 6.0,
+          "min_net_edge_a": 1.5,
+          "min_net_edge_b": 2.5,
+          "kelly_fraction": 0.2971477219236802,
+          "max_pct_per_market": 0.05047537967938663,
+          "max_single_order": 24.52462032061337,
+          "max_orders_per_cycle": 10.0,
+          "min_volume": 100.0,
+          "min_edge_cents": 2.0,
+          "max_sane_edge_cents": 25.0,
+          "grade_a_threshold": 0.7,
+          "daily_loss_pct": 0.08,
+          "perf_min_sample": 10.0,
+          "perf_mute_roi": -10.0,
+          "use_market_prior": false,
+          "use_calibration": false,
+          "use_exact_fees": false,
+          "use_maker_first": true,
+          "use_exits": false,
+          "use_cluster_caps": false
+        },
+        "challenger": {
+          "max_spread_cents": 6.0,
+          "min_net_edge_cents": 1.2,
+          "edge_sigma_multiple": 0.2,
+          "edge_shrink_ridge": 400.0,
+          "use_tier_shrinkage": false,
+          "kelly_fraction": 0.3,
+          "kelly_uncertainty_z": 1.0,
+          "max_pct_per_market": 0.05,
+          "max_pct_per_cluster": 0.12,
+          "max_gross_exposure_pct": 0.35,
+          "max_single_order": 25.0,
+          "max_orders_per_cycle": 12.0,
+          "cash_reserve_pct": 0.1,
+          "min_volume": 0.0,
+          "disagreement_cap_points": 0.45,
+          "adverse_selection_cents": 1.2,
+          "adverse_volume_scale": 300.0,
+          "maker_min_spread": 2.0,
+          "maker_ttl_ticks": 3.0,
+          "maker_min_ticks_left": 4.0,
+          "maker_adverse_cents": 1.5,
+          "exit_profit_cents": 2.0,
+          "exit_stop_cents": 3.0,
+          "min_ticks_to_open": 2.0,
+          "use_market_prior": true,
+          "use_calibration": true,
+          "use_exact_fees": true,
+          "use_maker_first": true,
+          "use_exits": false,
+          "use_cluster_caps": true
+        }
+      },
+      "divergence": {
+        "incumbent|challenger": 0.3432
+      }
+    }
+  ],
+  "totals": {
+    "incumbent": {
+      "pnl_$": -82.25,
+      "trades": 754,
+      "contracts": 11864,
+      "fees_$": 155.28,
+      "rounds_won": 1,
+      "mean_brier": 0.187,
+      "mean_brier_skill": -0.0238
+    },
+    "challenger": {
+      "pnl_$": 1126.99,
+      "trades": 942,
+      "contracts": 17888,
+      "fees_$": 231.92,
+      "rounds_won": 9,
+      "mean_brier": 0.184,
+      "mean_brier_skill": -0.0086
+    }
+  }
+}

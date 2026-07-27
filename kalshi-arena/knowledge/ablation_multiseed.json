@@ -1,0 +1,68 @@
+{
+  "setup": "8 seeds x 8 rounds, mixed regime, 200 markets/round, $1000 bankroll",
+  "rows": [
+    {
+      "toggled": "(baseline)",
+      "mean_per_round": 70.88,
+      "stderr": 14.42,
+      "sharpe": 0.61,
+      "trades": 5251
+    },
+    {
+      "toggled": "use_market_prior",
+      "mean_per_round": 70.52,
+      "stderr": 15.26,
+      "sharpe": 0.58,
+      "trades": 7062,
+      "delta_vs_baseline": -0.36
+    },
+    {
+      "toggled": "use_calibration",
+      "mean_per_round": 66.17,
+      "stderr": 14.44,
+      "sharpe": 0.57,
+      "trades": 4705,
+      "delta_vs_baseline": -4.71
+    },
+    {
+      "toggled": "use_exact_fees",
+      "mean_per_round": 72.18,
+      "stderr": 15.15,
+      "sharpe": 0.6,
+      "trades": 5453,
+      "delta_vs_baseline": 1.3
+    },
+    {
+      "toggled": "use_maker_first",
+      "mean_per_round": 37.84,
+      "stderr": 8.41,
+      "sharpe": 0.56,
+      "trades": 6044,
+      "delta_vs_baseline": -33.04
+    },
+    {
+      "toggled": "use_cluster_caps",
+      "mean_per_round": 70.88,
+      "stderr": 14.42,
+      "sharpe": 0.61,
+      "trades": 5251,
+      "delta_vs_baseline": 0.0
+    },
+    {
+      "toggled": "use_exits",
+      "mean_per_round": -3.97,
+      "stderr": 12.2,
+      "sharpe": -0.04,
+      "trades": 11348,
+      "delta_vs_baseline": -74.85
+    },
+    {
+      "toggled": "use_tier_shrinkage",
+      "mean_per_round": 74.77,
+      "stderr": 14.64,
+      "sharpe": 0.64,
+      "trades": 5464,
+      "delta_vs_baseline": 3.89
+    }
+  ]
+}
