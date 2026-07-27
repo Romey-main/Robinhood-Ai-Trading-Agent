@@ -1,0 +1,48 @@
+name: kalshi-arena tests
+
+on:
+  push:
+    paths:
+      - 'kalshi-arena/**'
+      - '.github/workflows/kalshi-arena-tests.yml'
+  pull_request:
+    paths:
+      - 'kalshi-arena/**'
+      - '.github/workflows/kalshi-arena-tests.yml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+    defaults:
+      run:
+        working-directory: kalshi-arena
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # The arena itself is standard-library only, by design -- there is no
+      # install step and nothing to pin. pytest is the single test-time dep.
+      - name: Install pytest
+        run: python -m pip install --upgrade pip pytest
+
+      - name: Run tests
+        run: python -m pytest -q
+
+      # A smoke run of the real entry point. The suite covers the components;
+      # this catches the CLI wiring and artifact writing, which unit tests
+      # deliberately do not touch.
+      - name: Smoke-run the tournament
+        run: |
+          python -m arena.cli compete \
+            --rounds 2 --markets 60 --ticks 25 \
+            --kb "$RUNNER_TEMP/kb.sqlite" \
+            --lessons "$RUNNER_TEMP/LESSONS.md" \
+            --results "$RUNNER_TEMP/results.json"
